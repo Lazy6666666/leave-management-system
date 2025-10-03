@@ -1,0 +1,32 @@
+{
+  "name": "leave-management-system",
+  "version": "1.0.0",
+  "description": "A comprehensive leave management system",
+  "private": true,
+  "workspaces": [
+    "frontend",
+    "backend"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspace=frontend",
+    "dev:frontend": "npm run dev --workspace=frontend",
+    "dev:backend": "npm run dev --workspace=backend",
+    "build": "npm run build --workspace=frontend",
+    "start": "npm run start --workspace=frontend",
+    "lint": "npm run lint --workspace=frontend",
+    "test": "npm run test --workspace=frontend",
+    "db:generate": "npm run db:generate --workspace=backend",
+    "db:push": "npm run db:push --workspace=backend",
+    "db:reset": "npm run db:reset --workspace=backend",
+    "db:seed-users": "node scripts/create-test-users.js",
+    "deploy:backend": "npm run deploy --workspace=backend",
+    "install:all": "npm install && npm install --workspace=frontend && npm install --workspace=backend"
+  },
+  "devDependencies": {
+    "npm-run-all": "^4.1.5"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  }
+}

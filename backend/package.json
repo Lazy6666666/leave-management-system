@@ -1,0 +1,19 @@
+{
+  "name": "leave-management-backend",
+  "version": "1.0.0",
+  "description": "Backend for the leave management system",
+  "private": true,
+  "scripts": {
+    "dev": "supabase functions serve",
+    "deploy": "supabase functions deploy",
+    "db:generate": "supabase gen types typescript --project-id your-project-id > src/types/database.types.ts",
+    "db:reset": "supabase db reset",
+    "db:push": "supabase db push"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.58.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3"
+  }
+}

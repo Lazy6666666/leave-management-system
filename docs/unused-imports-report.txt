@@ -1,0 +1,317 @@
+
+=== UNUSED IMPORTS ANALYSIS ===
+
+📊 Summary:
+   • Total files analyzed: 81
+   • Files with unused imports: 22
+   • Total unused imports: 26
+
+📋 Files with unused imports:
+
+📁 e2e\test-utils.ts
+   ⚠️  Issues:
+      Multiple imports from '@playwright/test' - consider consolidating
+
+📁 e2e\user-workflows.spec.ts
+   ⚠️  Issues:
+      Multiple imports from '@playwright/test' - consider consolidating
+
+📁 frontend\components\features\auth\LoginForm.tsx
+   🚫 Unused imports (1):
+      Line 7: 'type LoginFormData' from '@/lib/schemas/auth'
+   ⚠️  Issues:
+      Multiple imports from '@/lib/schemas/auth' - consider consolidating
+      Multiple imports from '@/hooks/use-auth' - consider consolidating
+
+📁 frontend\components\features\auth\RegisterForm.tsx
+   🚫 Unused imports (1):
+      Line 6: 'type RegisterFormData' from '@/lib/schemas/auth'
+   ⚠️  Issues:
+      Multiple imports from 'react-hook-form' - consider consolidating
+      Multiple imports from '@/lib/schemas/auth' - consider consolidating
+
+📁 frontend\hooks\use-admin.ts
+   ⚠️  Issues:
+      Multiple imports from '@tanstack/react-query' - consider consolidating
+      Multiple imports from '@/lib/schemas/document' - consider consolidating
+      Multiple imports from '@/lib/schemas/admin' - consider consolidating
+
+📁 frontend\hooks\use-auth.ts
+   ⚠️  Issues:
+      Multiple imports from '@tanstack/react-query' - consider consolidating
+      Multiple imports from '@/types/auth' - consider consolidating
+
+📁 frontend\hooks\use-toast.ts
+   ⚠️  Issues:
+      Multiple imports from '@/ui/toast' - consider consolidating
+
+📁 frontend\lib\auth.ts
+   🚫 Unused imports (2):
+      Line 1: 'type NextRequest' from 'next/server'
+      Line 2: 'createClient' from '@/lib/supabase-server'
+   ⚠️  Issues:
+      Multiple imports from 'next/server' - consider consolidating
+
+📁 frontend\lib\supabase-server.ts
+   🚫 Unused imports (1):
+      Line 1: 'type CookieOptions' from '@supabase/ssr'
+   ⚠️  Issues:
+      Multiple imports from '@supabase/ssr' - consider consolidating
+
+📁 frontend\lib\utils.ts
+   🚫 Unused imports (1):
+      Line 1: 'type ClassValue' from 'clsx'
+   ⚠️  Issues:
+      Multiple imports from 'clsx' - consider consolidating
+
+📁 frontend\lib\__tests__\api-client.test.ts
+   ⚠️  Issues:
+      Multiple imports from 'vitest' - consider consolidating
+
+📁 frontend\lib\__tests__\simple-utils.test.ts
+   ⚠️  Issues:
+      Multiple imports from 'vitest' - consider consolidating
+
+📁 frontend\pages\api\admin\audit-logs\route.ts
+   ⚠️  Issues:
+      Multiple imports from 'next/server' - consider consolidating
+
+📁 frontend\pages\api\admin\leave-types\route.ts
+   ⚠️  Issues:
+      Multiple imports from 'next/server' - consider consolidating
+
+📁 frontend\pages\api\admin\reports\route.ts
+   ⚠️  Issues:
+      Multiple imports from 'next/server' - consider consolidating
+
+📁 frontend\pages\api\admin\users\route.ts
+   ⚠️  Issues:
+      Multiple imports from 'next/server' - consider consolidating
+
+📁 frontend\pages\api\admin\utils.ts
+   🚫 Unused imports (1):
+      Line 5: 'createClient' from '@/lib/supabase-server'
+   ⚠️  Issues:
+      Multiple imports from 'next/server' - consider consolidating
+      Multiple imports from '@/lib/permissions' - consider consolidating
+
+📁 frontend\pages\api\auth\login\route.ts
+   ⚠️  Issues:
+      Multiple imports from 'next/server' - consider consolidating
+
+📁 frontend\pages\api\auth\signup\route.ts
+   ⚠️  Issues:
+      Multiple imports from 'next/server' - consider consolidating
+
+📁 frontend\pages\api\documents\route.ts
+   🚫 Unused imports (1):
+      Line 8: 'createClient' from '@/lib/supabase-server'
+   ⚠️  Issues:
+      Multiple imports from 'next/server' - consider consolidating
+      Multiple imports from '@/lib/schemas/document' - consider consolidating
+      Multiple imports from '@/lib/permissions' - consider consolidating
+
+📁 frontend\pages\api\documents\[id]\notifiers\route.ts
+   🚫 Unused imports (1):
+      Line 4: 'createClient' from '@/lib/supabase-server'
+   ⚠️  Issues:
+      Multiple imports from 'next/server' - consider consolidating
+      Multiple imports from '@/lib/permissions' - consider consolidating
+
+📁 frontend\pages\api\documents\[id]\notifiers\schedule\route.ts
+   🚫 Unused imports (1):
+      Line 4: 'createClient' from '@/lib/supabase-server'
+   ⚠️  Issues:
+      Multiple imports from 'next/server' - consider consolidating
+      Multiple imports from '@/lib/permissions' - consider consolidating
+
+📁 frontend\pages\api\documents\[id]\route.ts
+   🚫 Unused imports (1):
+      Line 4: 'createClient' from '@/lib/supabase-server'
+   ⚠️  Issues:
+      Multiple imports from 'next/server' - consider consolidating
+      Multiple imports from '@/lib/permissions' - consider consolidating
+
+📁 frontend\pages\api\leaves\approve\route.ts
+   ⚠️  Issues:
+      Multiple imports from 'next/server' - consider consolidating
+
+📁 frontend\pages\api\leaves\route.ts
+   ⚠️  Issues:
+      Multiple imports from 'next/server' - consider consolidating
+
+📁 frontend\pages\api\notifications\route.ts
+   🚫 Unused imports (1):
+      Line 4: 'createClient' from '@/lib/supabase-server'
+   ⚠️  Issues:
+      Multiple imports from 'next/server' - consider consolidating
+
+📁 frontend\pages\api\__tests__\integration-fixed.test.ts
+   ⚠️  Issues:
+      Multiple imports from 'vitest' - consider consolidating
+      Multiple imports from 'next' - consider consolidating
+
+📁 frontend\pages\api\__tests__\integration.test.ts
+   🚫 Unused imports (2):
+      Line 1: 'afterEach' from 'vitest'
+      Line 2: 'RequestMethod' from 'node-mocks-http'
+   ⚠️  Issues:
+      Multiple imports from 'vitest' - consider consolidating
+      Multiple imports from 'node-mocks-http' - consider consolidating
+      Multiple imports from 'next' - consider consolidating
+
+📁 frontend\pages\api\__tests__\simple-integration.test.ts
+   ⚠️  Issues:
+      Multiple imports from 'vitest' - consider consolidating
+      Multiple imports from 'next' - consider consolidating
+
+📁 frontend\pages\dashboard\admin\leave-types\page.tsx
+   ⚠️  Issues:
+      Multiple imports from '@/hooks/use-admin' - consider consolidating
+
+📁 frontend\pages\dashboard\admin\users\page.tsx
+   🚫 Unused imports (1):
+      Line 7: 'Select' from '@/ui/select'
+   ⚠️  Issues:
+      Multiple imports from '@/hooks/use-admin' - consider consolidating
+
+📁 frontend\pages\dashboard\approvals\page.tsx
+   🚫 Unused imports (1):
+      Line 5: 'User' from 'lucide-react'
+   ⚠️  Issues:
+      Multiple imports from '@/ui/card' - consider consolidating
+      Multiple imports from '@/ui/avatar' - consider consolidating
+      Multiple imports from 'lucide-react' - consider consolidating
+
+📁 frontend\pages\dashboard\documents\page.tsx
+   ⚠️  Issues:
+      Multiple imports from '@/ui/card' - consider consolidating
+      Multiple imports from 'lucide-react' - consider consolidating
+
+📁 frontend\pages\dashboard\layout.tsx
+   ⚠️  Issues:
+      Multiple imports from '@/ui/avatar' - consider consolidating
+
+📁 frontend\pages\dashboard\leaves\page.tsx
+   ⚠️  Issues:
+      Multiple imports from '@/ui/card' - consider consolidating
+      Multiple imports from 'lucide-react' - consider consolidating
+
+📁 frontend\pages\dashboard\page.tsx
+   ⚠️  Issues:
+      Multiple imports from '@/ui/card' - consider consolidating
+      Multiple imports from 'lucide-react' - consider consolidating
+
+📁 frontend\pages\dashboard\profile\page.tsx
+   ⚠️  Issues:
+      Multiple imports from '@/ui/card' - consider consolidating
+      Multiple imports from '@/ui/avatar' - consider consolidating
+      Multiple imports from '@/ui/select' - consider consolidating
+
+📁 frontend\pages\dashboard\team\page.tsx
+   ⚠️  Issues:
+      Multiple imports from '@/ui/card' - consider consolidating
+      Multiple imports from '@/ui/avatar' - consider consolidating
+
+📁 frontend\pages\layout.tsx
+   ⚠️  Issues:
+      Side-effect imports found - verify they are needed: 1
+
+📁 frontend\pages\login\page.tsx
+   ⚠️  Issues:
+      Multiple imports from '@/ui/card' - consider consolidating
+
+📁 frontend\pages\page.tsx
+   ⚠️  Issues:
+      Multiple imports from '@/ui/card' - consider consolidating
+
+📁 frontend\pages\register\page.tsx
+   ⚠️  Issues:
+      Multiple imports from '@/ui/card' - consider consolidating
+
+📁 frontend\theme-provider.tsx
+   🚫 Unused imports (2):
+      Line 3: 'React' from 'react'
+      Line 5: 'type ThemeProviderProps' from 'next-themes/dist/types'
+
+📁 frontend\ui\avatar.tsx
+   🚫 Unused imports (1):
+      Line 2: 'type VariantProps' from 'class-variance-authority'
+   ⚠️  Issues:
+      Multiple imports from 'class-variance-authority' - consider consolidating
+
+📁 frontend\ui\badge.tsx
+   🚫 Unused imports (1):
+      Line 2: 'type VariantProps' from 'class-variance-authority'
+   ⚠️  Issues:
+      Multiple imports from 'class-variance-authority' - consider consolidating
+
+📁 frontend\ui\button.tsx
+   🚫 Unused imports (1):
+      Line 3: 'type VariantProps' from 'class-variance-authority'
+   ⚠️  Issues:
+      Multiple imports from 'class-variance-authority' - consider consolidating
+
+📁 frontend\ui\calendar.tsx
+   ⚠️  Issues:
+      Multiple imports from 'lucide-react' - consider consolidating
+
+📁 frontend\ui\label.tsx
+   🚫 Unused imports (1):
+      Line 3: 'type VariantProps' from 'class-variance-authority'
+   ⚠️  Issues:
+      Multiple imports from 'class-variance-authority' - consider consolidating
+
+📁 frontend\ui\select.tsx
+   ⚠️  Issues:
+      Multiple imports from 'lucide-react' - consider consolidating
+
+📁 frontend\ui\toast.tsx
+   🚫 Unused imports (1):
+      Line 5: 'type VariantProps' from 'class-variance-authority'
+   ⚠️  Issues:
+      Multiple imports from 'class-variance-authority' - consider consolidating
+
+📁 frontend\ui\__tests__\ui-components.test.tsx
+   ⚠️  Issues:
+      Multiple imports from 'vitest' - consider consolidating
+      Multiple imports from '@testing-library/react' - consider consolidating
+
+📁 middleware.ts
+   🚫 Unused imports (2):
+      Line 1: 'type CookieOptions' from '@supabase/ssr'
+      Line 2: 'type NextRequest' from 'next/server'
+   ⚠️  Issues:
+      Multiple imports from '@supabase/ssr' - consider consolidating
+      Multiple imports from 'next/server' - consider consolidating
+
+📁 playwright.config.ts
+   ⚠️  Issues:
+      Multiple imports from '@playwright/test' - consider consolidating
+
+📁 supabase\functions\approve-leave\index.ts
+   ⚠️  Issues:
+      Multiple imports from 'next' - consider consolidating
+
+📁 supabase\functions\check-document-expiry\index.ts
+   ⚠️  Issues:
+      Multiple imports from 'next' - consider consolidating
+
+📁 supabase\functions\create-leave-request\index.ts
+   ⚠️  Issues:
+      Multiple imports from 'next' - consider consolidating
+
+📁 supabase\functions\initialize-leave-balances\index.ts
+   ⚠️  Issues:
+      Multiple imports from 'next' - consider consolidating
+
+📁 vitest.config.ts
+   🚫 Unused imports (1):
+      Line 3: 'react' from '@vitejs/plugin-react'
+
+
+💡 Next steps:
+   1. Review the unused imports above
+   2. Remove them manually or use your IDE
+   3. Run TypeScript compilation to verify
+   4. Consider adding ESLint rules to prevent this
