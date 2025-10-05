@@ -94,7 +94,6 @@
     "tailwind-merge": "^3.3.1",
     "tailwindcss": "^4.1.14",
     "tailwindcss-animate": "^1.0.7",
-    "typescript": "^5.9.3",
     "zod": "^4.1.11"
   },
   "devDependencies": {
@@ -112,7 +111,7 @@
     "@testing-library/react": "^16.3.0",
     "@testing-library/user-event": "^14.6.1",
     "@types/glob": "^8.1.0",
-    "@types/node": "^20",
+    "@types/node": "^20.19.19",
     "@types/papaparse": "^5.3.16",
     "@types/react": "^19.2.0",
     "@types/react-dom": "^19.2.0",
