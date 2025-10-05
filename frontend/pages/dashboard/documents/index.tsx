@@ -1,176 +1,312 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/ui/card'
+import { useState } from 'react'
+import { useRouter } from 'next/router'
+import { 
+  FileText, 
+  Download, 
+  Search, 
+  Loader2,
+  FileIcon,
+  Image as ImageIcon,
+  File as FileIconGeneric
+} from 'lucide-react'
+import { useLeaveDocuments, useDownloadDocument } from '@/hooks/use-leave-documents'
+import { useQuery } from '@tanstack/react-query'
+import { getBrowserClient } from '@/lib/supabase-client'
+import type { LeaveDocument, LeaveWithRelations } from '@/types'
 import { Button } from '@/ui/button'
-import { Badge } from '@/ui/badge'
-import { Upload, FileText, Download, Calendar, AlertTriangle } from 'lucide-react'
+import { Input } from '@/ui/input'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/ui/card'
+import { useToast } from '@/hooks/use-toast'
+
+const supabase = getBrowserClient()
+
+// Helper function to format file size
+function formatFileSize(bytes: number): string {
+  if (bytes === 0) return '0 B'
+  const k = 1024
+  const sizes = ['B', 'KB', 'MB', 'GB']
+  const i = Math.floor(Math.log(bytes) / Math.log(k))
+  return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2))} ${sizes[i]}`
+}
+
+// Helper function to get file type icon
+function getFileTypeIcon(fileType: string) {
+  if (fileType.startsWith('image/')) {
+    return <ImageIcon className="h-5 w-5 text-blue-500" />
+  }
+  if (fileType === 'application/pdf') {
+    return <FileText className="h-5 w-5 text-red-500" />
+  }
+  if (
+    fileType === 'application/msword' ||
+    fileType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+  ) {
+    return <FileIcon className="h-5 w-5 text-blue-600" />
+  }
+  return <FileIconGeneric className="h-5 w-5 text-gray-500" />
+}
+
+// Helper function to format date
+function formatDate(dateString: string): string {
+  const date = new Date(dateString)
+  return new Intl.DateTimeFormat('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(date)
+}
+
+interface DocumentWithLeave extends LeaveDocument {
+  leave?: LeaveWithRelations
+}
 
 export default function DocumentsPage() {
-  // Mock data - in real app this would come from API
-  const documents = [
-    {
-      id: 1,
-      name: 'Employee Handbook 2024.pdf',
-      type: 'Policy Document',
-      size: '2.4 MB',
-      uploadedBy: 'HR Department',
-      uploadDate: '2024-01-01',
-      expiryDate: '2024-12-31',
-      status: 'active',
-      isExpiring: false
-    },
-    {
-      id: 2,
-      name: 'Safety Training Certificate.pdf',
-      type: 'Certificate',
-      size: '1.8 MB',
-      uploadedBy: 'John Doe',
-      uploadDate: '2023-12-15',
-      expiryDate: '2024-02-15',
-      status: 'active',
-      isExpiring: true
-    },
-    {
-      id: 3,
-      name: 'Company Insurance Policy.pdf',
-      type: 'Policy Document',
-      size: '3.2 MB',
-      uploadedBy: 'HR Department',
-      uploadDate: '2023-11-20',
-      expiryDate: null,
-      status: 'active',
-      isExpiring: false
-    }
-  ]
+  const router = useRouter()
+  const { toast } = useToast()
+  const [searchQuery, setSearchQuery] = useState('')
+  const [downloadingId, setDownloadingId] = useState<string | null>(null)
 
-  const stats = {
-    totalDocuments: 24,
-    expiringSoon: 3,
-    expired: 1,
-    totalSize: '45.6 GB'
+  // Fetch all documents for the current user
+  const { data: documents, isLoading, error } = useLeaveDocuments()
+
+  // Fetch leave request details for each document
+  const { data: documentsWithLeaves, isLoading: isLoadingLeaves } = useQuery<DocumentWithLeave[], Error>({
+    queryKey: ['documents-with-leaves', documents],
+    queryFn: async () => {
+      if (!documents || documents.length === 0) return []
+
+      // Get unique leave request IDs
+      const leaveRequestIds = Array.from(new Set(documents.map(doc => doc.leave_request_id)))
+
+      // Fetch leave requests
+      const { data: leaves, error: leavesError } = await supabase
+        .from('leaves')
+        .select(`
+          *,
+          requester:profiles!requester_id(id, full_name, role, department),
+          leave_type:leave_types(id, name, description, default_allocation_days, is_active)
+        `)
+        .in('id', leaveRequestIds)
+
+      if (leavesError) {
+        throw new Error(leavesError.message)
+      }
+
+      // Type assertion for leaves data
+      const typedLeaves = leaves as LeaveWithRelations[] | null
+
+      // Map documents with their leave data
+      return documents.map(doc => ({
+        ...doc,
+        leave: typedLeaves?.find((leave: LeaveWithRelations) => leave.id === doc.leave_request_id),
+      }))
+    },
+    enabled: !!documents && documents.length > 0,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  })
+
+  const downloadMutation = useDownloadDocument()
+
+  const handleDownload = async (document: LeaveDocument) => {
+    setDownloadingId(document.id)
+    try {
+      const signedUrl = await downloadMutation.mutateAsync(document.id)
+      
+      // Trigger download
+      const link = window.document.createElement('a')
+      link.href = signedUrl
+      link.download = document.file_name
+      window.document.body.appendChild(link)
+      link.click()
+      window.document.body.removeChild(link)
+
+      toast({
+        title: 'Download started',
+        description: `Downloading ${document.file_name}`,
+      })
+    } catch (error) {
+      toast({
+        title: 'Download failed',
+        description: error instanceof Error ? error.message : 'Failed to download document',
+        variant: 'destructive',
+      })
+    } finally {
+      setDownloadingId(null)
+    }
   }
 
+  // Filter documents based on search query
+  const filteredDocuments = documentsWithLeaves?.filter(doc => {
+    if (!searchQuery) return true
+    
+    const searchLower = searchQuery.toLowerCase()
+    const fileName = doc.file_name.toLowerCase()
+    const leaveType = doc.leave?.leave_type?.name?.toLowerCase() || ''
+    const requesterName = doc.leave?.requester?.full_name?.toLowerCase() || ''
+    
+    return (
+      fileName.includes(searchLower) ||
+      leaveType.includes(searchLower) ||
+      requesterName.includes(searchLower)
+    )
+  })
+
+  // Group documents by leave request
+  const groupedDocuments = filteredDocuments?.reduce((acc, doc) => {
+    const leaveId = doc.leave_request_id
+    if (!acc[leaveId]) {
+      acc[leaveId] = []
+    }
+    acc[leaveId].push(doc)
+    return acc
+  }, {} as Record<string, DocumentWithLeave[]>)
+
+  if (isLoading || isLoadingLeaves) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-primary" />
+          <p className="text-muted-foreground">Loading documents...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Card className="max-w-md">
+          <CardHeader>
+            <CardTitle className="text-destructive">Error Loading Documents</CardTitle>
+            <CardDescription>
+              {error.message || 'Failed to load documents. Please try again.'}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button onClick={() => router.reload()}>Retry</Button>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
+  const hasDocuments = documentsWithLeaves && documentsWithLeaves.length > 0
+
   return (
-    <div className="space-y-8">
-      {/* Header */}
-      <div className="flex items-center justify-between">
+    <div className="container mx-auto py-6 space-y-6">
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Documents</h1>
           <p className="text-muted-foreground">
-            Manage company documents and track expiry dates
+            View and manage your leave request documents
           </p>
         </div>
-        <Button>
-          <Upload className="mr-2 h-4 w-4" />
-          Upload Document
-        </Button>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-4">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Total Documents</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.totalDocuments}</div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Expiring Soon</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-orange-600">{stats.expiringSoon}</div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Expired</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-red-600">{stats.expired}</div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Total Size</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.totalSize}</div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Expiring Soon Alert */}
-      {stats.expiringSoon > 0 && (
-        <Card className="border-orange-200 bg-orange-50 dark:border-orange-800 dark:bg-orange-950">
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-2">
-              <AlertTriangle className="h-5 w-5 text-orange-600" />
-              <div>
-                <p className="font-medium text-orange-800 dark:text-orange-200">
-                  {stats.expiringSoon} documents are expiring soon
-                </p>
-                <p className="text-sm text-orange-600 dark:text-orange-300">
-                  Please review and renew these documents before they expire.
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+      {hasDocuments && (
+        <div className="flex items-center gap-2">
+          <div className="relative flex-1 max-w-sm">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              placeholder="Search documents..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-9"
+            />
+          </div>
+        </div>
       )}
 
-      {/* Documents List */}
-      <Card>
-        <CardHeader>
-          <CardTitle>All Documents</CardTitle>
-          <CardDescription>
-            View and manage all company documents
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {documents.map((document) => (
-              <div key={document.id} className="flex items-center justify-between p-4 border rounded-lg">
-                <div className="flex items-center space-x-4">
-                  <div className="p-2 bg-blue-100 dark:bg-blue-900 rounded-lg">
-                    <FileText className="h-6 w-6 text-blue-600 dark:text-blue-400" />
-                  </div>
-                  <div className="space-y-1">
-                    <h3 className="font-medium">{document.name}</h3>
-                    <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                      <span>{document.type}</span>
-                      <span>{document.size}</span>
-                      <span>Uploaded by {document.uploadedBy}</span>
-                      {document.expiryDate && (
-                        <div className="flex items-center gap-1">
-                          <Calendar className="h-4 w-4" />
-                          Expires: {document.expiryDate}
-                          {document.isExpiring && (
-                            <Badge variant="destructive" className="ml-2">Expiring</Badge>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
+      {!hasDocuments ? (
+        <Card>
+          <CardContent className="flex flex-col items-center justify-center py-12">
+            <FileText className="h-12 w-12 text-muted-foreground mb-4" />
+            <h3 className="text-lg font-semibold mb-2">No documents found</h3>
+            <p className="text-muted-foreground text-center mb-4">
+              You haven't uploaded any documents yet. Documents can be attached when creating or editing leave requests.
+            </p>
+            <Button onClick={() => router.push('/dashboard/leaves/new')}>
+              Create Leave Request
+            </Button>
+          </CardContent>
+        </Card>
+      ) : filteredDocuments && filteredDocuments.length === 0 ? (
+        <Card>
+          <CardContent className="flex flex-col items-center justify-center py-12">
+            <Search className="h-12 w-12 text-muted-foreground mb-4" />
+            <h3 className="text-lg font-semibold mb-2">No matching documents</h3>
+            <p className="text-muted-foreground text-center">
+              No documents match your search criteria. Try a different search term.
+            </p>
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="space-y-6">
+          {groupedDocuments && Object.entries(groupedDocuments).map(([leaveId, docs]) => {
+            const firstDoc = docs[0]
+            const leave = firstDoc?.leave
 
-                <div className="flex gap-2">
-                  <Button variant="outline" size="sm">
-                    <Download className="mr-2 h-4 w-4" />
-                    Download
-                  </Button>
-                  <Button variant="outline" size="sm">
-                    Edit
-                  </Button>
-                </div>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+            return (
+              <Card key={leaveId}>
+                <CardHeader>
+                  <CardTitle className="text-lg">
+                    {leave?.leave_type?.name || 'Unknown Leave Type'}
+                  </CardTitle>
+                  <CardDescription>
+                    {leave?.start_date && leave?.end_date && (
+                      <>
+                        {new Date(leave.start_date).toLocaleDateString()} -{' '}
+                        {new Date(leave.end_date).toLocaleDateString()}
+                      </>
+                    )}
+                    {leave?.status && (
+                      <span className="ml-2 capitalize">
+                        • Status: {leave.status}
+                      </span>
+                    )}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2">
+                    {docs.map((doc) => (
+                      <div
+                        key={doc.id}
+                        className="flex items-center justify-between p-3 border rounded-lg hover:bg-accent/50 transition-colors"
+                      >
+                        <div className="flex items-center gap-3 flex-1 min-w-0">
+                          {getFileTypeIcon(doc.file_type)}
+                          <div className="flex-1 min-w-0">
+                            <p className="font-medium truncate">{doc.file_name}</p>
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                              <span>{formatFileSize(doc.file_size)}</span>
+                              <span>•</span>
+                              <span>{formatDate(doc.uploaded_at)}</span>
+                            </div>
+                          </div>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleDownload(doc)}
+                          disabled={downloadingId === doc.id}
+                        >
+                          {downloadingId === doc.id ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <Download className="h-4 w-4" />
+                          )}
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )
+          })}
+        </div>
+      )}
     </div>
   )
 }

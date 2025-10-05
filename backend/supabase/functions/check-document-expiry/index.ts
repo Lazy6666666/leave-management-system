@@ -3,6 +3,7 @@
 
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.2.3';
+import { checkRateLimit, getRateLimitHeaders, RATE_LIMITS } from '../_shared/rate-limiter.ts';
 
 type Json =
   | string
@@ -48,6 +49,29 @@ serve(async (req: Request) => {
       return new Response(
         JSON.stringify({ error: 'Unauthorized' }),
         { status: 401, headers: { ...corsHeaders } }
+      );
+    }
+
+    // Check rate limit
+    const rateLimitResult = await checkRateLimit(
+      req,
+      user?.id,
+      RATE_LIMITS.readOperations
+    );
+
+    if (!rateLimitResult.allowed) {
+      return new Response(
+        JSON.stringify({
+          error: 'Rate limit exceeded',
+          retryAfter: Math.ceil((rateLimitResult.resetTime - Date.now()) / 1000),
+        }),
+        {
+          headers: {
+            ...corsHeaders,
+            ...getRateLimitHeaders(rateLimitResult),
+          },
+          status: 429,
+        }
       );
     }
 
@@ -152,7 +176,13 @@ serve(async (req: Request) => {
         notifications_sent: notifications.length,
         notifications,
       }),
-      { headers: { ...corsHeaders }, status: 200 }
+      {
+        headers: {
+          ...corsHeaders,
+          ...getRateLimitHeaders(rateLimitResult),
+        },
+        status: 200,
+      }
     );
   } catch (error) {
     console.error('Error:', error);

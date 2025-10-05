@@ -18,16 +18,34 @@ npm run build
 npm start
 
 # Code quality
-npm run lint
-npm run type-check
+npm run lint                # Run ESLint
+npm run lint:fix            # Auto-fix ESLint issues
+npm run type-check          # TypeScript type checking
+npm run format              # Format with Prettier
+npm run check-all           # Run format, lint, type-check, and build
 
 # Testing
 npm test                    # Run unit tests in watch mode
 npm run test:run            # Run unit tests once
 npm run test:coverage       # Generate coverage report (80% threshold)
 npm run test:ui             # Vitest UI
+
+# E2E Testing
 npm run test:e2e            # Run Playwright E2E tests
 npm run test:e2e:ui         # Playwright UI mode
+npm run test:e2e:debug      # Debug mode
+
+# Visual Regression Testing
+npm run test:visual         # Run visual regression tests
+npm run test:visual:update  # Update visual snapshots
+npm run test:visual:ui      # Visual tests in UI mode
+npm run test:visual:report  # Show test report
+
+# Accessibility Testing
+npm run test:a11y           # Run basic accessibility tests
+npm run test:a11y:enhanced  # Run enhanced accessibility tests
+npm run test:a11y:keyboard  # Test keyboard navigation
+npm run test:a11y:all       # Run all accessibility tests
 ```
 
 ### Backend (Supabase)
@@ -52,20 +70,39 @@ npm run deploy              # Deploy Edge Functions to Supabase
 
 **Pages Router** (not App Router):
 - `/pages/` - Next.js Pages Router structure
-  - `/api/` - API route handlers
-  - `/dashboard/` - Main application pages (admin, leaves, approvals, documents, team)
+  - `/api/` - API route handlers (Next.js API routes, not Edge Runtime)
+  - `/dashboard/` - Main application pages (admin, leaves, approvals, documents, team, profile)
   - `/login/` and `/register/` - Authentication pages
+  - `index.tsx` - Landing page
+  - `_app.tsx` - Custom App component with theme provider
+  - `globals.css` - Global styles with Tailwind and custom CSS variables
 - `/components/` - Reusable React components
-  - `/admin/` - Admin-specific components
   - `/features/` - Feature-specific components
+    - `/admin/` - Admin dashboard components
+    - `/approvals/` - Approval workflow components
+    - `/auth/` - Login and registration forms
+    - `/documents/` - Document management components
+    - `/leaves/` - Leave request forms and lists
+    - `/notifications/` - Notification system components
+    - `/profile/` - User profile components
+    - `leave-request-form.tsx` - Main leave request form
+  - `/layouts/` - Layout components
+    - `DashboardLayout.tsx` - Main dashboard layout with navigation
 - `/hooks/` - Custom React hooks
+  - `use-auth.ts` - Authentication hook
+  - `use-toast.ts` - Toast notification hook
 - `/lib/` - Utilities and core logic
   - `/schemas/` - Zod validation schemas
+  - `/utils/` - Utility functions
   - `supabase-client.ts` - Browser client (singleton pattern)
-  - `supabase-server.ts` - Server-side client with cookie handling
+  - `supabase-server.ts` - Server-side client with cookie handling for API routes
   - `permissions.ts` - Role-based access control utilities
-  - `api-client.ts` - Frontend API client wrapper
-- `/ui/` - UI component library (shadcn/ui)
+  - `api-client.ts` - Frontend API client wrapper with business logic
+  - `accessibility-utils.ts` - Accessibility helpers
+  - `utils.ts` - General utility functions (cn, etc.)
+- `/ui/` - UI component library (shadcn/ui based on Radix UI)
+- `/e2e/` - Playwright end-to-end tests
+- `middleware.ts` - Authentication and route protection middleware
 
 ### Backend Structure
 
@@ -130,16 +167,31 @@ npm run deploy              # Deploy Edge Functions to Supabase
 ### Testing Strategy
 
 **Unit Tests** (Vitest):
-- Location: Co-located with source files (`*.test.ts`)
-- Setup: `src/test/setup.ts`
+- Location: Co-located with source files as `__tests__/*.test.tsx` or `*.test.ts`
+- Testing libraries: `@testing-library/react`, `@testing-library/user-event`
 - Coverage thresholds: 80% (branches, functions, lines, statements)
 - Run individual test: `npm test -- path/to/test.test.ts`
+- Run specific test file: `npm test -- ui/button`
 
 **E2E Tests** (Playwright):
 - Location: `e2e/` directory
-- Tests Chromium, Mobile Chrome, and Mobile Safari
-- Automatic dev server startup
+- Browsers: Chromium, Mobile Chrome, Mobile Safari
+- Test types: Basic E2E, accessibility (axe-core), visual regression, keyboard navigation
+- Automatic dev server startup at http://localhost:3000
 - Run single test: `npm run test:e2e -- -g "test name"`
+- Debug specific test: `npm run test:e2e:debug -- -g "test name"`
+
+**Visual Regression Testing**:
+- Uses Playwright's screenshot comparison
+- Snapshots stored in `e2e/visual-regression.spec.ts-snapshots/`
+- Update snapshots: `npm run test:visual:update`
+- Tests light/dark themes and responsive layouts
+
+**Accessibility Testing**:
+- Automated a11y checks with @axe-core/playwright
+- Keyboard navigation tests
+- ARIA attribute validation
+- Focus management testing
 
 ## Key Patterns
 
@@ -182,16 +234,28 @@ SUPABASE_SERVICE_ROLE_KEY=your_service_role_key  # Backend only, never expose to
 ## Common Development Workflows
 
 ### Adding a New Page
-1. Create page component in `pages/dashboard/your-page/page.tsx`
-2. Add layout if needed in `pages/dashboard/your-page/layout.tsx`
-3. Update `middleware.ts` if route requires protection
-4. Add navigation link in dashboard layout
+1. Create page component in `pages/dashboard/your-page/index.tsx` (Pages Router, not `page.tsx`)
+2. Update `middleware.ts` if route requires protection (add to `protectedPaths` array)
+3. Add navigation link in `components/layouts/DashboardLayout.tsx`
+4. Implement permission checks using `lib/permissions.ts` if role-based access needed
 
 ### Adding a New API Endpoint
-1. Create route in `pages/api/your-endpoint/route.ts`
-2. Define Zod schema in `lib/schemas/`
-3. Implement request handler with authentication and permission checks
-4. Add corresponding method in `lib/api-client.ts`
+1. Create handler in `pages/api/your-endpoint/index.ts` (or nested route)
+2. Define Zod schema in `lib/schemas/` for request validation
+3. Implement handler with Next.js API route pattern:
+   ```typescript
+   import type { NextApiRequest, NextApiResponse } from 'next'
+   import { createClient } from '@/lib/supabase-server'
+
+   export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+     const supabase = createClient(req, res)
+     // Implementation
+   }
+   ```
+4. Add authentication check with `supabase.auth.getUser()`
+5. Add permission checks using `lib/permissions.ts`
+6. Add corresponding method in `lib/api-client.ts` for frontend usage
+7. Add unit tests in `pages/api/your-endpoint/__tests__/`
 
 ### Adding a Database Table
 1. Create migration in `backend/supabase/migrations/`
@@ -205,16 +269,74 @@ SUPABASE_SERVICE_ROLE_KEY=your_service_role_key  # Backend only, never expose to
 2. Test locally with `npm run dev` (from backend/)
 3. Deploy with `npm run deploy`
 
+## Styling & Theming
+
+**Tailwind CSS**:
+- Version 4.x configured via `tailwind.config.js`
+- Custom CSS variables defined in `globals.css` for light/dark themes
+- Uses `next-themes` for theme switching
+
+**UI Components**:
+- Based on shadcn/ui (Radix UI primitives + Tailwind)
+- Components in `/ui/` directory
+- Class merging with `cn()` utility from `lib/utils.ts`
+- Variants managed with `class-variance-authority`
+
+**Dark Mode**:
+- System preference detection
+- Manual toggle via theme switcher component
+- CSS variables adapt based on theme: `--background`, `--foreground`, `--primary`, etc.
+
 ## TypeScript Configuration
 
 - Strict mode enabled
-- Path alias: `@/` maps to project root for cleaner imports
+- Path alias: `@/` maps to `frontend/` for cleaner imports
 - Vitest globals enabled for test files
+- Type checking: `npm run type-check`
 
-## Notes
+## Monorepo Structure
 
-- This project uses **Pages Router**, not App Router
-- All database operations should respect RLS policies
-- Service role key should only be used in Edge Functions or secure API routes
-- Document upload uses Supabase Storage with access policies
-- Leave balance updates are handled via database triggers and Edge Functions
+This is a workspace monorepo with:
+- **Root**: Workspace configuration and shared scripts
+- **frontend/**: Next.js application
+- **backend/**: Supabase Edge Functions and migrations
+
+Run commands from root:
+- `npm run dev` → runs frontend dev server
+- `npm run dev:frontend` → explicit frontend dev
+- `npm run dev:backend` → backend Edge Functions
+- `npm run db:*` → database operations
+
+## Critical Notes
+
+### Pages Router (Not App Router)
+- Uses Next.js Pages Router architecture
+- Page files are `index.tsx`, not `page.tsx`
+- API routes in `pages/api/`, not `app/api/`
+- No React Server Components - all components are client-side unless using `getServerSideProps`
+
+### Authentication Flow
+- Middleware protects routes server-side before rendering
+- Client components use `getBrowserClient()` for auth state
+- API routes use `createClient(req, res)` for server-side auth
+- Edge Functions use service role for admin operations
+
+### Database Access
+- All tables have RLS enabled - test with appropriate user roles
+- Service role bypasses RLS - only use in Edge Functions or secure API routes
+- Never expose `SUPABASE_SERVICE_ROLE_KEY` to the client
+- Test RLS policies with different user roles (employee, manager, hr, admin)
+
+### Testing Approach
+- Unit tests for utilities and API clients
+- Component tests for React components
+- E2E tests for critical user flows
+- Visual regression for UI consistency
+- Accessibility tests for WCAG compliance
+
+### Common Gotchas
+- **API Routes**: Must export default function, not named exports
+- **Middleware**: Runs on every request matching the matcher pattern
+- **Supabase Client**: Use `getBrowserClient()` in components, `createClient(req, res)` in API routes
+- **Theme Variables**: Defined in `globals.css`, not `tailwind.config.js`
+- **Path Alias**: `@/` refers to `frontend/`, not project root

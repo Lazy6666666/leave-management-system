@@ -1,0 +1,107 @@
+The current task list prioritizes core features and marks unit test tasks as optional. Before we proceed with this implementation plan, I need to clarify a few details about your environment and preferences:
+
+Environment Configuration:
+
+What environment variables are you currently using in your Leave Management System? (I need to know which ones should be validated/secured)
+
+Are you using any specific Supabase Edge Functions that need special handling?
+
+Do you have any custom build scripts or deployment processes I should be aware of?
+
+Current State Questions: 
+
+4. Are there specific components or pages where you know you have hardcoded mock data that needs to be replaced? 5. Do you have any existing error boundaries or error handling patterns I should preserve/enhance? 6. Are there any third-party libraries or dependencies that might need special cleanup consideration?
+
+Preferences: 
+
+7. Do you want comprehensive unit testing (remove the "*" from test tasks) or prefer to keep testing optional for faster implementation? 8. Are there any specific performance metrics or bundle size targets you want to achieve? 9. Do you have preferences for error logging services or monitoring tools?
+
+Should we proceed with the current MVP-focused task list that prioritizes core features and marks unit testing as optional?
+
+
+ANSWER:
+
+Here are the answers based on the project analysis:
+
+### Environment Configuration
+
+**1. What environment variables are you currently using?**
+
+The project uses different sets of variables for local development, Supabase backend, and Vercel frontend deployment.
+
+**For Local Development (from `.env.example` files):**
+*   **Supabase:** `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`
+*   **Application:** `NEXT_PUBLIC_APP_URL`, `NEXT_PUBLIC_APP_NAME`, `NEXT_PUBLIC_VERSION`
+*   **Authentication:** `JWT_SECRET`, `SESSION_MAX_AGE`
+*   **Optional Services:** `SENDGRID_API_KEY`, `MAILGUN_API_KEY`, `MAILGUN_DOMAIN`, `NEXT_PUBLIC_SENTRY_DSN`, `NEXT_PUBLIC_GA_ID`
+*   **Security & Features:** `CORS_ORIGINS`, `NEXT_PUBLIC_FEATURE_DOCUMENTS`, `NEXT_PUBLIC_FEATURE_NOTIFICATIONS`
+*   **Storage & Rate Limiting:** `NEXT_PUBLIC_STORAGE_BUCKET`, `MAX_FILE_SIZE`, `RATE_LIMIT_REQUESTS`, `RATE_LIMIT_WINDOW_MS`
+
+**For Deployed Supabase Edge Functions (from `npx supabase secrets list`):**
+These are the secrets set in your remote Supabase project for the backend functions.
+*   `SUPABASE_ANON_KEY`
+*   `SUPABASE_DB_URL`
+*   `SUPABASE_SERVICE_ROLE_KEY`
+*   `SUPABASE_URL`
+
+**For Vercel Frontend Deployment (from `set-vercel-env.sh`):**
+These variables are set for your production frontend on Vercel.
+*   `NEXT_PUBLIC_SUPABASE_URL`
+*   `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+*   `SUPABASE_SERVICE_ROLE_KEY`
+
+**2. Are you using any specific Supabase Edge Functions?**
+
+Yes, the following Edge Functions are present in `backend/supabase/functions`:
+*   `_shared`
+*   `approve-leave`
+*   `check-document-expiry`
+*   `create-leave-request`
+*   `initialize-leave-balances`
+
+**3. Do you have any custom build scripts or deployment processes?**
+
+Yes, the `package.json` files define several custom scripts:
+*   **Root:** `install:all`, `db:seed-users`, `deploy:backend`
+*   **Frontend:** `lint:fix`, `format`, `type-check`, various testing scripts for `vitest` and `playwright` (`test:ui`, `test:e2e`, `test:visual`, `test:a11y`), `analyze`, `storybook`
+*   **Backend:** `dev`, `deploy`, `db:generate`, `db:reset`, `db:push`
+The `frontend/set-vercel-env.sh` script is used to set environment variables for Vercel deployments.
+
+### Current State Questions
+
+**4. Are there specific components or pages with hardcoded mock data?**
+
+Yes, mock data has been identified in the following locations:
+*   `__tests__/setup.ts`: Mocks for browser APIs for testing purposes.
+*   `design/components.md` and `design/integration.md`: Mock data and API calls for documentation.
+*   `pages/dashboard/leaves/index.tsx`: A comment indicates the use of mock data: `// Mock data - in real app this would come from API`.
+
+**5. Do you have any existing error boundaries or error handling patterns?**
+
+Yes, the project has a comprehensive error handling system:
+*   **`frontend/components/error-boundary.tsx`**: A React Error Boundary to catch rendering errors.
+*   **`frontend/lib/api-error-handler.ts`**: Middleware for API routes (`withErrorHandler`) to standardize error responses.
+*   **`frontend/lib/client-error-handler.ts`**: Utilities and hooks (`useErrorHandler`) for handling client-side errors and redirects.
+*   **`frontend/lib/page-error-handler.ts`**: Utilities for handling page-level errors (404, 401, 403).
+*   **`frontend/lib/storage-error-handler.ts`**: Specialized error handling for file storage operations.
+
+**6. Are there any third-party libraries that need special cleanup consideration?**
+
+The main dependencies are standard for a Next.js/Supabase stack (`@supabase/*`, `@tanstack/react-query`, `react-hook-form`, `zod`, `shadcn/ui`, `tailwindcss`). No special cleanup is immediately obvious, but their usage should be reviewed.
+
+### Preferences
+
+**7. Do you want comprehensive unit testing?**
+
+The project is well-equipped for comprehensive testing with Vitest and Playwright. I recommend proceeding with writing and maintaining tests for all new features and fixes to ensure quality.
+
+**8. Are there any specific performance metrics or bundle size targets?**
+
+No specific targets are defined in the project. The `analyze` script in the frontend `package.json` can be used to monitor bundle size.
+
+**9. Do you have preferences for error logging services or monitoring tools?**
+
+The configuration (`NEXT_PUBLIC_SENTRY_DSN` variable and logging functions) indicates an existing setup for Sentry. I will continue to use this pattern for error logging.
+
+---
+Given this information, I recommend proceeding with the MVP-focused task list. I will address the removal of mock data and ensure test coverage as part of the implementation.

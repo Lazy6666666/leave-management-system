@@ -9,6 +9,16 @@ import { useLogin, getSupabaseClient } from '@/hooks/use-auth'
 import { Input } from '@/ui/input'
 import { Button } from '@/ui/button'
 import { useToast } from '@/hooks/use-toast'
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/ui/form'
+import { Alert, AlertDescription } from '@/ui/alert'
+import { AlertCircle } from 'lucide-react'
 
 interface LoginFormProps {
   redirectTo?: string
@@ -21,17 +31,15 @@ export function LoginForm({ redirectTo, onSuccess }: LoginFormProps) {
   const loginMutation = useLogin()
   const supabase = getSupabaseClient()
 
-  const {
-    register,
-    handleSubmit,
-    setError,
-    getValues,
-    formState: { errors },
-  } = useForm<LoginFormData>({
+  const form = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
+    defaultValues: {
+      email: '',
+      password: '',
+    },
   })
 
-  const onSubmit = handleSubmit(async (data) => {
+  const onSubmit = form.handleSubmit(async (data) => {
     loginMutation.mutate(data, {
       onSuccess: () => {
         toast({
@@ -44,7 +52,7 @@ export function LoginForm({ redirectTo, onSuccess }: LoginFormProps) {
         }
       },
       onError: (error) => {
-        setError('root', { message: error.message })
+        form.setError('root', { message: error.message })
         toast({
           title: 'Sign in failed',
           description: error.message,
@@ -55,9 +63,9 @@ export function LoginForm({ redirectTo, onSuccess }: LoginFormProps) {
   })
 
   const handleMagicLink = async () => {
-    const email = getValues('email')
+    const email = form.getValues('email')
     if (!email) {
-      setError('email', { message: 'Email is required for magic link' })
+      form.setError('email', { message: 'Email is required for magic link' })
       return
     }
 
@@ -91,89 +99,85 @@ export function LoginForm({ redirectTo, onSuccess }: LoginFormProps) {
   }
 
   return (
-    <form className="space-y-6" onSubmit={onSubmit} noValidate>
-      <div className="space-y-2">
-        <label htmlFor="email" className="text-sm font-medium text-slate-700">
-          Email address
-        </label>
-        <Input
-          id="email"
-          type="email"
-          autoComplete="email"
-          placeholder="Enter your work email"
-          className="h-11 border-slate-200 focus:border-blue-500 focus:ring-blue-500"
-          {...register('email')}
+    <Form {...form}>
+      <form className="space-y-6" onSubmit={onSubmit} noValidate>
+        <FormField
+          control={form.control}
+          name="email"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="text-sm font-medium text-slate-700">
+                Email address
+              </FormLabel>
+              <FormControl>
+                <Input
+                  type="email"
+                  autoComplete="email"
+                  placeholder="Enter your work email"
+                  className="h-11 border-slate-200 focus:border-blue-500 focus:ring-blue-500"
+                  error={!!form.formState.errors.email}
+                  {...field}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
         />
-        {errors.email && (
-          <p className="text-sm text-red-600 flex items-center space-x-1">
-            <span>⚠</span>
-            <span>{errors.email.message}</span>
-          </p>
-        )}
-      </div>
 
-      <div className="space-y-2">
-        <label htmlFor="password" className="text-sm font-medium text-slate-700">
-          Password
-        </label>
-        <Input
-          id="password"
-          type="password"
-          autoComplete="current-password"
-          placeholder="Enter your password"
-          className="h-11 border-slate-200 focus:border-blue-500 focus:ring-blue-500"
-          {...register('password')}
+        <FormField
+          control={form.control}
+          name="password"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="text-sm font-medium text-slate-700">
+                Password
+              </FormLabel>
+              <FormControl>
+                <Input
+                  type="password"
+                  autoComplete="current-password"
+                  placeholder="Enter your password"
+                  className="h-11 border-slate-200 focus:border-blue-500 focus:ring-blue-500"
+                  error={!!form.formState.errors.password}
+                  {...field}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
         />
-        {errors.password && (
-          <p className="text-sm text-red-600 flex items-center space-x-1">
-            <span>⚠</span>
-            <span>{errors.password.message}</span>
-          </p>
-        )}
-      </div>
 
-      {errors.root && (
-        <div className="rounded-md bg-red-50 p-4">
-          <p className="text-sm text-red-800 flex items-center space-x-2">
-            <span>⚠</span>
-            <span>{errors.root.message}</span>
-          </p>
+        {form.formState.errors.root && (
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
+              {form.formState.errors.root.message}
+            </AlertDescription>
+          </Alert>
+        )}
+
+        <div className="space-y-3">
+          <Button 
+            type="submit" 
+            className="w-full h-11 bg-blue-600 hover:bg-blue-700 text-white font-medium" 
+            loading={loginMutation.isPending}
+            disabled={loginMutation.isPending}
+          >
+            {loginMutation.isPending ? 'Signing in...' : 'Sign in to LeaveFlow'}
+          </Button>
+          
+          <Button
+            type="button"
+            variant="outline"
+            className="w-full h-11 border-slate-200 text-slate-700 hover:bg-slate-50"
+            onClick={handleMagicLink}
+            loading={isSubmittingMagicLink}
+            disabled={isSubmittingMagicLink}
+          >
+            {isSubmittingMagicLink ? 'Sending magic link...' : 'Send magic link instead'}
+          </Button>
         </div>
-      )}
-
-      <div className="space-y-3">
-        <Button 
-          type="submit" 
-          className="w-full h-11 bg-blue-600 hover:bg-blue-700 text-white font-medium" 
-          disabled={loginMutation.isPending}
-        >
-          {loginMutation.isPending ? (
-            <div className="flex items-center space-x-2">
-              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-              <span>Signing in...</span>
-            </div>
-          ) : (
-            'Sign in to LeaveFlow'
-          )}
-        </Button>
-        
-        <Button
-          type="button"
-          variant="outline"
-          className="w-full h-11 border-slate-200 text-slate-700 hover:bg-slate-50"
-          onClick={handleMagicLink}
-          disabled={isSubmittingMagicLink}
-        >
-          {isSubmittingMagicLink ? (
-            <div className="flex items-center space-x-2">
-              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-slate-400"></div>
-              <span>Sending magic link...</span>
-            </div>
-          ) : (
-            'Send magic link instead'
-          )}
-        </Button>
-      </div>
-    </form>
+      </form>
+    </Form>
   )
 }

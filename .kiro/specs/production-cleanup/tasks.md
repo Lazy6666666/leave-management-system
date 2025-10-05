@@ -1,0 +1,142 @@
+# Implementation Plan
+
+- [x] 1. Set up production cleanup infrastructure and tooling
+  - Install and configure @next/bundle-analyzer for bundle analysis
+  - Set up TypeScript strict mode validation scripts
+  - Create cleanup configuration schema with Zod validation
+  - Configure ESLint rules for production readiness checks
+  - _Requirements: 1.1, 1.2_
+
+- [x] 2. Implement file system cleanup engine
+  - [x] 2.1 Create artifact scanner for development files
+    - Build file pattern matching system for documentation, test, and build artifacts
+    - Implement directory traversal with exclusion patterns
+    - Add validation to preserve critical production files
+    - _Requirements: 1.1_
+
+  - [x] 2.2 Implement Next.js specific cleanup patterns
+    - Remove .next/, .turbo/, .vercel/ build directories
+    - Clean up development-only files (_.test._, _.spec._, _.stories._)
+
+    - Purge temporary files and logs
+    - _Requirements: 1.1_
+
+- [x] 3. Build mock data replacement system with shadcn/ui empty states
+  - [x] 3.1 Create mock data detection engine
+    - Scan components for hardcoded arrays and objects
+    - Identify placeholder data patterns in React components
+    - Generate report of components requiring empty state implementation
+    - _Requirements: 2.1, 2.2_
+
+  - [x] 3.2 Implement shadcn/ui Empty component integration
+    - Install and configure shadcn/ui Empty component
+    - Create reusable empty state templates for common scenarios
+    - Build empty state configuration system with TypeScript interfaces
+    - _Requirements: 2.1, 2.2_
+  - [x] 3.3 Replace hardcoded data with proper empty states
+    - Convert leave request list empty states to shadcn/ui format
+    - Implement team member list empty states with proper actions
+    - Add notification center empty states with appropriate messaging
+    - Create access denied and error empty states
+    - _Requirements: 2.1, 2.2_
+
+- [x] 4. Implement debug code sanitization system
+  - [x] 4.1 Create console statement removal engine
+    - Build AST-based parser to identify console.log/warn/error statements
+    - Preserve intentional error logging while removing debug statements
+    - Implement safe code transformation with syntax validation
+    - Clean up mock data comments in `pages/dashboard/leaves/index.tsx`
+    - _Requirements: 3.1, 3.2_
+  - [x] 4.2 Remove development comments and debug flags
+    - Scan for TODO, FIXME, and DEBUG comments
+    - Remove temporary development flags and feature toggles
+    - Clean up commented-out code blocks
+    - Remove mock data references in design documentation files
+    - _Requirements: 3.1, 3.2_
+  - [x] 4.3 Implement credential scanning and removal
+    - Detect hardcoded API keys, passwords, and tokens in all source files
+    - Validate environment variable usage for all identified variables (Supabase, app config, auth, services)
+    - Ensure NEXT*PUBLIC* prefix compliance for client-side variables
+    - Audit Edge Function secret usage in backend/supabase/functions
+    - _Requirements: 3.1, 3.2, 5.1_
+
+- [x] 5. Build comprehensive error handling system
+  - [x] 5.1 Enhance existing React error boundaries following React 19 best practices
+    - Review and enhance existing `frontend/components/error-boundary.tsx`
+    - Integrate with existing error handling patterns in lib/api-error-handler.ts
+    - Enhance feature-level error boundaries for isolated error handling
+    - Build global error boundary with fallback UI and recovery options
+    - _Requirements: 6.1, 6.2_
+  - [x] 5.2 Enhance API error handling with existing Supabase integration
+    - Review and enhance existing error handlers (client-error-handler.ts, page-error-handler.ts, storage-error-handler.ts)
+    - Standardize Supabase error response handling (PGRST codes, RLS violations)
+    - Implement user-friendly error messages for common scenarios
+    - Add retry logic with exponential backoff for network errors
+    - _Requirements: 6.1, 6.2_
+  - [x] 5.3 Enhance production error logging with Sentry integration
+    - Integrate with existing Sentry configuration (NEXT_PUBLIC_SENTRY_DSN)
+    - Implement secure error reporting without sensitive data exposure
+    - Add error boundary integration with Sentry logging service
+    - Create error recovery and user notification system
+    - _Requirements: 6.1, 6.2_
+
+- [x] 6. Implement performance optimization engine
+  - [x] 6.1 Set up bundle analysis and optimization
+    - Configure webpack-bundle-analyzer integration
+    - Implement bundle size monitoring and alerts
+    - Create code splitting analysis for Client Components
+    - _Requirements: 7.1, 7.2_
+  - [x] 6.2 Optimize Next.js App Router performance
+    - Validate Server/Client Component boundaries
+    - Implement proper dynamic imports for heavy components
+    - Configure React Query caching strategies for production
+    - Optimize font loading with next/font module
+    - _Requirements: 7.1, 7.2_
+  - [x] 6.3 Implement image and asset optimization
+    - Ensure all images use Next.js Image component with WebP/AVIF
+    - Configure static asset caching strategies
+    - Implement lazy loading for non-critical resources
+    - _Requirements: 7.1, 7.2_
+
+- [x] 7. Build security and environment configuration system
+  - [x] 7.1 Implement Supabase security validation for Edge Functions
+    - Audit Row Level Security (RLS) policy compliance
+    - Validate service role key usage in Edge Functions (\_shared, approve-leave, check-document-expiry, create-leave-request, initialize-leave-balances)
+    - Check anon key exposure and RLS integration
+    - Scan for hardcoded database URLs and credentials in all functions
+    - _Requirements: 5.1, 5.2_
+  - [x] 7.2 Configure production environment variables for all deployment targets
+    - Validate all identified environment variables (Supabase, app config, auth, services, storage, rate limiting)
+    - Ensure NEXT*PUBLIC* prefix compliance for client-safe variables
+    - Validate Vercel deployment environment configuration (set-vercel-env.sh)
+    - Set up proper Supabase Edge Function secret management
+    - Configure Content Security Policy headers
+    - _Requirements: 5.1, 5.2_
+
+- [x] 8. Create production readiness validation system
+  - [x] 8.1 Implement automated production checks with existing tooling
+    - Build pre-deployment validation script using existing npm scripts
+    - Create production build verification tests with Vitest
+    - Implement bundle size regression testing using existing analyze script
+    - Add accessibility compliance validation using existing test:a11y script
+    - _Requirements: 8.1, 8.2_
+  - [x] 8.2 Set up monitoring and performance tracking with Sentry
+    - Configure Core Web Vitals monitoring with existing Sentry setup
+    - Implement error tracking and alerting using NEXT_PUBLIC_SENTRY_DSN
+    - Set up performance regression detection
+    - Create production deployment checklist
+    - _Requirements: 8.1, 8.2_
+
+- [x] 9. Comprehensive testing and validation with Playwright MCP
+  - [x] 9.1 Create comprehensive test coverage for cleanup processes
+    - Write unit tests with Vitest for file cleanup operations
+    - Test empty state component rendering and interactions using existing test setup
+    - Validate error boundary behavior under various failure scenarios
+    - Use Playwright MCP for browser-based testing of cleanup results
+    - _Requirements: 8.1, 8.2_
+  - [x] 9.2 Implement end-to-end production readiness testing with Playwright
+    - Create E2E tests for production build validation using existing Playwright setup
+    - Test performance optimization effectiveness with Playwright MCP
+    - Validate security configuration in production-like environment
+    - Use existing test scripts (test:e2e, test:visual, test:a11y) for comprehensive validation
+    - _Requirements: 8.1, 8.2_

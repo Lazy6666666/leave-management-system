@@ -1,12 +1,20 @@
 'use client'
 
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Controller, useForm } from 'react-hook-form'
+import { useForm } from 'react-hook-form'
 
 import { registerSchema, type RegisterFormData } from '@/lib/schemas/auth'
 import { useRegister } from '@/hooks/use-auth'
 import { Input } from '@/ui/input'
 import { Button } from '@/ui/button'
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/ui/form'
 import {
   Select,
   SelectContent,
@@ -14,6 +22,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/ui/select'
+import { Alert, AlertDescription } from '@/ui/alert'
+import { AlertCircle } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
 
 const DEPARTMENTS = [
@@ -35,13 +45,7 @@ export function RegisterForm({ redirectTo, onSuccess }: RegisterFormProps) {
   const { toast } = useToast()
   const registerMutation = useRegister()
 
-  const {
-    register,
-    control,
-    handleSubmit,
-    setError,
-    formState: { errors },
-  } = useForm<RegisterFormData>({
+  const form = useForm<RegisterFormData>({
     resolver: zodResolver(registerSchema),
     defaultValues: {
       fullName: '',
@@ -53,7 +57,7 @@ export function RegisterForm({ redirectTo, onSuccess }: RegisterFormProps) {
     },
   })
 
-  const onSubmit = handleSubmit((data) => {
+  const onSubmit = form.handleSubmit((data) => {
     registerMutation.mutate(data, {
       onSuccess: () => {
         toast({
@@ -66,7 +70,7 @@ export function RegisterForm({ redirectTo, onSuccess }: RegisterFormProps) {
         }
       },
       onError: (error) => {
-        setError('root', { message: error.message })
+        form.setError('root', { message: error.message })
         toast({
           title: 'Registration failed',
           description: error.message,
@@ -77,97 +81,131 @@ export function RegisterForm({ redirectTo, onSuccess }: RegisterFormProps) {
   })
 
   return (
-    <form className="space-y-6" onSubmit={onSubmit} noValidate>
-      <div className="space-y-2">
-        <label htmlFor="fullName" className="text-sm font-medium text-foreground">
-          Full name
-        </label>
-        <Input
-          id="fullName"
-          type="text"
-          autoComplete="name"
-          placeholder="Enter your full name"
-          {...register('fullName')}
-        />
-        {errors.fullName && <p className="text-sm text-destructive">{errors.fullName.message}</p>}
-      </div>
-
-      <div className="space-y-2">
-        <label htmlFor="email" className="text-sm font-medium text-foreground">
-          Email
-        </label>
-        <Input
-          id="email"
-          type="email"
-          autoComplete="email"
-          placeholder="you@example.com"
-          {...register('email')}
-        />
-        {errors.email && <p className="text-sm text-destructive">{errors.email.message}</p>}
-      </div>
-
-      <div className="space-y-2">
-        <label htmlFor="password" className="text-sm font-medium text-foreground">
-          Password
-        </label>
-        <Input
-          id="password"
-          type="password"
-          autoComplete="new-password"
-          placeholder="Create a strong password"
-          {...register('password')}
-        />
-        {errors.password && (
-          <p className="text-sm text-destructive">{errors.password.message}</p>
-        )}
-      </div>
-
-      <div className="space-y-2">
-        <label htmlFor="confirmPassword" className="text-sm font-medium text-foreground">
-          Confirm password
-        </label>
-        <Input
-          id="confirmPassword"
-          type="password"
-          autoComplete="new-password"
-          placeholder="Re-enter your password"
-          {...register('confirmPassword')}
-        />
-        {errors.confirmPassword && (
-          <p className="text-sm text-destructive">{errors.confirmPassword.message}</p>
-        )}
-      </div>
-
-      <div className="space-y-2">
-        <label className="text-sm font-medium text-foreground">Department</label>
-        <Controller
-          control={control}
-          name="department"
+    <Form {...form}>
+      <form className="space-y-6" onSubmit={onSubmit} noValidate>
+        <FormField
+          control={form.control}
+          name="fullName"
           render={({ field }) => (
-            <Select value={field.value} onValueChange={field.onChange}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select your department" />
-              </SelectTrigger>
-              <SelectContent>
-                {DEPARTMENTS.map((department) => (
-                  <SelectItem key={department} value={department}>
-                    {department}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <FormItem>
+              <FormLabel>Full name</FormLabel>
+              <FormControl>
+                <Input
+                  type="text"
+                  autoComplete="name"
+                  placeholder="Enter your full name"
+                  error={!!form.formState.errors.fullName}
+                  {...field}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
           )}
         />
-        {errors.department && (
-          <p className="text-sm text-destructive">{errors.department.message}</p>
+
+        <FormField
+          control={form.control}
+          name="email"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Email</FormLabel>
+              <FormControl>
+                <Input
+                  type="email"
+                  autoComplete="email"
+                  placeholder="you@example.com"
+                  error={!!form.formState.errors.email}
+                  {...field}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="password"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Password</FormLabel>
+              <FormControl>
+                <Input
+                  type="password"
+                  autoComplete="new-password"
+                  placeholder="Create a strong password"
+                  error={!!form.formState.errors.password}
+                  {...field}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="confirmPassword"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Confirm password</FormLabel>
+              <FormControl>
+                <Input
+                  type="password"
+                  autoComplete="new-password"
+                  placeholder="Re-enter your password"
+                  error={!!form.formState.errors.confirmPassword}
+                  {...field}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="department"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Department</FormLabel>
+              <Select value={field.value} onValueChange={field.onChange}>
+                <FormControl>
+                  <SelectTrigger error={!!form.formState.errors.department}>
+                    <SelectValue placeholder="Select your department" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {DEPARTMENTS.map((department) => (
+                    <SelectItem key={department} value={department}>
+                      {department}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        {form.formState.errors.root && (
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
+              {form.formState.errors.root.message}
+            </AlertDescription>
+          </Alert>
         )}
-      </div>
 
-      {errors.root && <p className="text-sm text-destructive">{errors.root.message}</p>}
-
-      <Button type="submit" className="w-full" disabled={registerMutation.isPending}>
-        {registerMutation.isPending ? 'Creating account...' : 'Create account'}
-      </Button>
-    </form>
+        <Button 
+          type="submit" 
+          className="w-full" 
+          loading={registerMutation.isPending}
+          disabled={registerMutation.isPending}
+        >
+          {registerMutation.isPending ? 'Creating account...' : 'Create account'}
+        </Button>
+      </form>
+    </Form>
   )
 }

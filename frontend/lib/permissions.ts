@@ -36,3 +36,7 @@ export function isAdminOrHr(role: UserRole): boolean {
 export function isManagerOrHigher(role: UserRole): boolean {
   return hasRequiredRole(role, ['manager', 'admin', 'hr'])
 }
+
+export function isAdmin(role: UserRole): boolean {
+  return role === 'admin'
+}

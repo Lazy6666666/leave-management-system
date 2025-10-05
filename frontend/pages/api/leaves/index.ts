@@ -2,11 +2,39 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import { createClient } from '@/lib/supabase-server';
 import { getUserProfile } from '@/lib/permissions';
 import type { Leave, LeaveStatus } from '@/types';
+import { TypedSupabaseClient } from '@/lib/types';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
-    const supabase = createClient(req, res);
-    const { data: { user } } = await supabase.auth.getUser();
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+    if (!supabaseUrl || !supabaseAnonKey) {
+      console.error('Leaves API: Missing Supabase environment variables', { supabaseUrl: !!supabaseUrl, supabaseAnonKey: !!supabaseAnonKey });
+      return res.status(500).json({
+        error: { code: 'ENV_VAR_MISSING', message: 'Supabase environment variables are not set.' }
+      });
+    }
+
+    let supabase;
+    try {
+      supabase = createClient(req, res);
+    } catch (clientError) {
+      console.error('Leaves API: Error creating Supabase client:', clientError);
+      return res.status(500).json({
+        error: { code: 'SUPABASE_CLIENT_ERROR', message: 'Failed to create Supabase client.' }
+      });
+    }
+
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+
+    if (userError) {
+      console.error('Leaves API: Error fetching user:', userError);
+      return res.status(500).json({
+        error: { code: 'SUPABASE_AUTH_ERROR', message: userError.message }
+      });
+    }
+
 
     if (!user) {
       return res.status(401).json({
@@ -34,7 +62,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 }
 
-async function handleGet(req: NextApiRequest, res: NextApiResponse, supabase: any, userId: string) {
+async function handleGet(req: NextApiRequest, res: NextApiResponse, supabase: TypedSupabaseClient, userId: string) {
   const { status, limit = '50', offset = '0', requester_id, approver_id } = req.query;
   const limitNum = Number(limit);
   const offsetNum = Number(offset);
@@ -54,7 +82,7 @@ async function handleGet(req: NextApiRequest, res: NextApiResponse, supabase: an
 
   // Filter by status
   if (status && typeof status === 'string') {
-    query = query.eq('status', status);
+    query = query.eq('status', status as 'pending' | 'approved' | 'rejected' | 'cancelled');
   }
 
   // Filter by requester
@@ -87,7 +115,7 @@ async function handleGet(req: NextApiRequest, res: NextApiResponse, supabase: an
   });
 }
 
-async function handlePost(req: NextApiRequest, res: NextApiResponse, supabase: any, userId: string) {
+async function handlePost(req: NextApiRequest, res: NextApiResponse, supabase: TypedSupabaseClient, userId: string) {
   const { start_date, end_date, leave_type_id, reason, days_count } = req.body;
 
   // Validation
@@ -124,7 +152,7 @@ async function handlePost(req: NextApiRequest, res: NextApiResponse, supabase: a
       days_count,
       reason: reason || null,
       status: 'pending',
-      approver_id: profile?.manager_id || null,
+      approver_id: null, // Will be set by the approval workflow
     })
     .select(`
       *,

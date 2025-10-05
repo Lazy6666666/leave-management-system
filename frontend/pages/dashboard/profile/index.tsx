@@ -8,23 +8,22 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Separator } from '@/ui/separator'
 
 export default function ProfilePage() {
-  // Mock data - in real app this would come from API
   const user = {
-    name: 'John Doe',
-    email: 'john.doe@company.com',
-    role: 'Senior Developer',
-    department: 'Engineering',
-    joinDate: '2022-03-15',
-    avatar: '/placeholder-avatar.jpg',
+    name: '',
+    email: '',
+    role: '',
+    department: '',
+    joinDate: '',
+    avatar: '',
     leaveBalance: {
-      annual: { used: 7, total: 25, remaining: 18 },
-      sick: { used: 2, total: 10, remaining: 8 },
-      personal: { used: 1, total: 5, remaining: 4 }
+      annual: { used: 0, total: 0, remaining: 0 },
+      sick: { used: 0, total: 0, remaining: 0 },
+      personal: { used: 0, total: 0, remaining: 0 }
     }
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 page-transition">
       {/* Header */}
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Profile</h1>

@@ -1,17 +1,33 @@
 import { useAdminReports } from '@/hooks/use-admin'
-import { SummaryCard } from '@/components/admin/summary-cards'
+import { StatCard } from '@/components/ui/stat-card'
+import { PageHeader } from '@/components/ui/page-header'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/ui/card'
-import { Users, UserCheck, UserCog, Clock, FileWarning, Bell, TrendingUp, BarChart3, Loader2 } from 'lucide-react'
+import { Skeleton } from '@/ui/skeleton'
+import { Users, UserCheck, UserCog, Clock, FileWarning, Bell, BarChart3 } from 'lucide-react'
+import { LeaveTypeStat } from '@/lib/types'
 
 export default function AdminOverviewPage() {
   const { data, isLoading, isError, error } = useAdminReports()
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="flex flex-col items-center gap-2">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          <p className="text-sm text-muted-foreground">Loading organization data...</p>
+      <div className="space-y-8 p-6 md:p-8 page-transition">
+        <div className="space-y-3">
+          <Skeleton className="h-9 w-64" />
+          <Skeleton className="h-5 w-96" />
+        </div>
+        <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <Card key={i}>
+              <CardHeader className="space-y-2">
+                <Skeleton className="h-4 w-24" />
+              </CardHeader>
+              <CardContent className="space-y-2">
+                <Skeleton className="h-8 w-16" />
+                <Skeleton className="h-3 w-32" />
+              </CardContent>
+            </Card>
+          ))}
         </div>
       </div>
     )
@@ -19,8 +35,26 @@ export default function AdminOverviewPage() {
 
   if (isError) {
     return (
-      <div className="p-4 border border-destructive rounded-lg bg-destructive/10">
-        <p className="text-destructive">{error instanceof Error ? error.message : 'Failed to load summary'}</p>
+      <div className="space-y-8 p-6 md:p-8 page-transition">
+        <PageHeader
+          title="Organization Overview"
+          description="Latest snapshot of employee counts and pending actions"
+        />
+        <Card className="border-destructive bg-destructive/5">
+          <CardContent className="p-6">
+            <div className="flex items-start gap-3">
+              <div className="rounded-full bg-destructive/10 p-2">
+                <FileWarning className="h-5 w-5 text-destructive" />
+              </div>
+              <div>
+                <p className="font-medium text-destructive">Failed to load data</p>
+                <p className="text-sm text-destructive/80 mt-1">
+                  {error instanceof Error ? error.message : 'Failed to load summary'}
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     )
   }
@@ -31,140 +65,137 @@ export default function AdminOverviewPage() {
     {
       title: 'Employees',
       value: summary?.totalEmployees ?? 0,
-      icon: Users,
-      color: 'bg-blue-500',
-      textColor: 'text-blue-600',
-      bgColor: 'bg-blue-50'
+      description: 'Active employees',
+      icon: Users
     },
     {
       title: 'Managers',
       value: summary?.totalManagers ?? 0,
-      icon: UserCheck,
-      color: 'bg-purple-500',
-      textColor: 'text-purple-600',
-      bgColor: 'bg-purple-50'
+      description: 'Active managers',
+      icon: UserCheck
     },
     {
       title: 'HR',
       value: summary?.totalHr ?? 0,
-      icon: UserCog,
-      color: 'bg-green-500',
-      textColor: 'text-green-600',
-      bgColor: 'bg-green-50'
+      description: 'HR personnel',
+      icon: UserCog
     },
     {
       title: 'Pending Leaves',
       value: summary?.pendingLeaves ?? 0,
-      icon: Clock,
-      color: 'bg-yellow-500',
-      textColor: 'text-yellow-600',
-      bgColor: 'bg-yellow-50'
+      description: 'Awaiting approval',
+      icon: Clock
     },
     {
       title: 'Documents Expiring',
       value: summary?.documentsExpiringSoon ?? 0,
-      icon: FileWarning,
-      color: 'bg-orange-500',
-      textColor: 'text-orange-600',
-      bgColor: 'bg-orange-50'
+      description: 'Expiring soon',
+      icon: FileWarning
     },
     {
       title: 'Notifications (7d)',
       value: summary?.notificationsLast7Days ?? 0,
-      icon: Bell,
-      color: 'bg-indigo-500',
-      textColor: 'text-indigo-600',
-      bgColor: 'bg-indigo-50'
+      description: 'Last 7 days',
+      icon: Bell
     }
   ]
 
   return (
-    <div className="space-y-8">
-      <div>
-        <h2 className="text-3xl font-bold tracking-tight">Organization Overview</h2>
-        <p className="text-muted-foreground mt-1">Latest snapshot of employee counts and pending actions</p>
-      </div>
+    <div className="space-y-6 md:space-y-8 page-transition">
+      <PageHeader
+        title="Organization Overview"
+        description="Latest snapshot of employee counts and pending actions"
+      />
 
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+      {/* Stats Grid with improved spacing */}
+      <div className="grid gap-4 md:gap-6 sm:grid-cols-2 xl:grid-cols-3">
         {stats.map((stat) => {
           const Icon = stat.icon
           return (
-            <Card key={stat.title} className="hover:shadow-lg transition-shadow">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">{stat.title}</CardTitle>
-                <div className={`p-2 rounded-lg ${stat.bgColor}`}>
-                  <Icon className={`h-4 w-4 ${stat.textColor}`} />
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{stat.value}</div>
-                <p className="text-xs text-muted-foreground mt-1 flex items-center">
-                  <TrendingUp className="h-3 w-3 mr-1" />
-                  Active count
-                </p>
-              </CardContent>
-            </Card>
+            <StatCard
+              key={stat.title}
+              title={stat.title}
+              value={stat.value}
+              icon={Icon}
+            />
           )
         })}
       </div>
 
+      {/* Leave Statistics Card with enhanced layout */}
       <Card>
-        <CardHeader>
-          <div className="flex items-center gap-2">
-            <BarChart3 className="h-5 w-5 text-primary" />
-            <CardTitle>Leave Statistics</CardTitle>
+        <CardHeader className="space-y-3 pb-6">
+          <div className="flex items-center gap-3">
+            <div className="rounded-lg bg-primary/10 p-2.5">
+              <BarChart3 className="h-5 w-5 text-primary" />
+            </div>
+            <div className="space-y-1">
+              <CardTitle className="text-xl">Leave Statistics</CardTitle>
+              <CardDescription className="text-sm">
+                Overview of leave allocation and usage across the organization
+              </CardDescription>
+            </div>
           </div>
-          <CardDescription>Overview of leave allocation and usage across the organization</CardDescription>
         </CardHeader>
-        <CardContent>
-          {summary?.leaveStatistics?.by_leave_type && summary.leaveStatistics.by_leave_type.length > 0 ? (
-            <div className="space-y-4">
-              {summary.leaveStatistics.by_leave_type.map((stat: any, index: number) => (
-                <div key={index} className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-medium">{stat.leave_type}</p>
-                      <p className="text-sm text-muted-foreground">
-                        {stat.total_requests} request{stat.total_requests !== 1 ? 's' : ''} • {stat.total_days} day{stat.total_days !== 1 ? 's' : ''}
-                      </p>
+        <CardContent className="space-y-8">
+          {summary?.leaveStatistics && 'by_leave_type' in summary.leaveStatistics && summary.leaveStatistics.by_leave_type?.length > 0 ? (
+            <>
+              {/* Leave Type Breakdown */}
+              <div className="space-y-6">
+                {summary.leaveStatistics.by_leave_type.map((stat: LeaveTypeStat, index: number) => (
+                  <div key={index} className="space-y-3">
+                    <div className="flex items-center justify-between gap-4">
+                      <div className="space-y-1 min-w-0 flex-1">
+                        <p className="font-semibold text-base truncate">{stat.leave_type}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {stat.total_requests ?? stat.count} request{(stat.total_requests ?? stat.count) !== 1 ? 's' : ''} • {stat.total_days} day{stat.total_days !== 1 ? 's' : ''}
+                        </p>
+                      </div>
+                      <div className="text-right shrink-0">
+                        <p className="text-2xl font-bold tabular-nums">{stat.total_days}</p>
+                        <p className="text-xs text-muted-foreground">days</p>
+                      </div>
                     </div>
-                    <div className="text-right">
-                      <p className="text-lg font-semibold">{stat.total_days}</p>
-                      <p className="text-xs text-muted-foreground">days</p>
+                    <div className="w-full bg-secondary rounded-full h-3 overflow-hidden">
+                      <div
+                        className="bg-primary h-full rounded-full transition-all duration-500 ease-out"
+                        style={{ width: `${Math.min((stat.total_days / 100) * 100, 100)}%` }}
+                      />
                     </div>
                   </div>
-                  <div className="w-full bg-secondary rounded-full h-2">
-                    <div
-                      className="bg-primary h-2 rounded-full transition-all"
-                      style={{ width: `${Math.min((stat.total_days / 100) * 100, 100)}%` }}
-                    />
-                  </div>
-                </div>
-              ))}
+                ))}
+              </div>
 
-              <div className="mt-6 p-4 bg-muted rounded-lg">
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-                  <div>
-                    <p className="text-2xl font-bold">{summary.leaveStatistics.total_employees || 0}</p>
-                    <p className="text-sm text-muted-foreground">Employees</p>
+              {/* Summary Stats Grid */}
+              <div className="rounded-lg border bg-muted/50 p-4 md:p-6">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+                  <div className="text-center space-y-2">
+                    <p className="text-3xl font-bold tabular-nums">{('by_leave_type' in summary.leaveStatistics && summary.leaveStatistics.total_employees) || 0}</p>
+                    <p className="text-sm text-muted-foreground font-medium">Employees</p>
                   </div>
-                  <div>
-                    <p className="text-2xl font-bold">{summary.leaveStatistics.total_leaves_pending || 0}</p>
-                    <p className="text-sm text-muted-foreground">Pending</p>
+                  <div className="text-center space-y-2">
+                    <p className="text-3xl font-bold text-warning tabular-nums">{('by_leave_type' in summary.leaveStatistics && summary.leaveStatistics.total_leaves_pending) || 0}</p>
+                    <p className="text-sm text-muted-foreground font-medium">Pending</p>
                   </div>
-                  <div>
-                    <p className="text-2xl font-bold">{summary.leaveStatistics.total_leaves_approved || 0}</p>
-                    <p className="text-sm text-muted-foreground">Approved</p>
+                  <div className="text-center space-y-2">
+                    <p className="text-3xl font-bold text-success tabular-nums">{('by_leave_type' in summary.leaveStatistics && summary.leaveStatistics.total_leaves_approved) || 0}</p>
+                    <p className="text-sm text-muted-foreground font-medium">Approved</p>
                   </div>
-                  <div>
-                    <p className="text-2xl font-bold">{summary.leaveStatistics.total_days_taken || 0}</p>
-                    <p className="text-sm text-muted-foreground">Days Taken</p>
+                  <div className="text-center space-y-2">
+                    <p className="text-3xl font-bold tabular-nums">{('by_leave_type' in summary.leaveStatistics && summary.leaveStatistics.total_days_taken) || 0}</p>
+                    <p className="text-sm text-muted-foreground font-medium">Days Taken</p>
                   </div>
                 </div>
               </div>
-            </div>
+            </>
           ) : (
-            <p className="text-sm text-muted-foreground">No leave statistics available</p>
+            <div className="text-center py-12">
+              <div className="rounded-full bg-muted/50 w-16 h-16 flex items-center justify-center mx-auto mb-4">
+                <BarChart3 className="h-8 w-8 text-muted-foreground" />
+              </div>
+              <p className="text-sm text-muted-foreground font-medium">No leave statistics available</p>
+              <p className="text-xs text-muted-foreground mt-1">Statistics will appear once leave requests are submitted</p>
+            </div>
           )}
         </CardContent>
       </Card>

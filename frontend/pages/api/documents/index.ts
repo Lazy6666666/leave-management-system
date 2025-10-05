@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { createClient } from '@/lib/supabase-server';
 import { getUserProfile, isAdminOrHr } from '@/lib/permissions';
+import { TypedSupabaseClient } from '@/lib/types';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
@@ -35,7 +36,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 }
 
-async function handleGet(req: NextApiRequest, res: NextApiResponse, supabase: any, userId: string) {
+async function handleGet(req: NextApiRequest, res: NextApiResponse, supabase: TypedSupabaseClient, userId: string) {
   const { limit = '50', offset = '0', document_type, is_public } = req.query;
   const limitNum = Number(limit);
   const offsetNum = Number(offset);
@@ -81,7 +82,7 @@ async function handleGet(req: NextApiRequest, res: NextApiResponse, supabase: an
   });
 }
 
-async function handlePost(req: NextApiRequest, res: NextApiResponse, supabase: any, userId: string) {
+async function handlePost(req: NextApiRequest, res: NextApiResponse, supabase: TypedSupabaseClient, userId: string) {
   const profile = await getUserProfile(supabase, userId);
 
   if (!profile || !isAdminOrHr(profile.role)) {
@@ -132,7 +133,7 @@ async function handlePost(req: NextApiRequest, res: NextApiResponse, supabase: a
   });
 }
 
-async function handleDelete(req: NextApiRequest, res: NextApiResponse, supabase: any, userId: string) {
+async function handleDelete(req: NextApiRequest, res: NextApiResponse, supabase: TypedSupabaseClient, userId: string) {
   const profile = await getUserProfile(supabase, userId);
 
   if (!profile || !isAdminOrHr(profile.role)) {

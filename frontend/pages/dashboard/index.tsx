@@ -2,334 +2,355 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/ui/card'
 import { Button } from '@/ui/button'
-import { Badge } from '@/ui/badge'
+import { Skeleton } from '@/ui/skeleton'
+import { StatCard } from '@/components/ui/stat-card'
+import { NoNotificationsEmpty } from '@/lib/production-cleanup/empty-state-templates'
+import { EmptyState } from '@/components/ui/empty-state'
+import { StatusBadge, getStatusIcon, type LeaveStatus } from '@/components/ui/status-badge'
 import { 
   Calendar, 
   Clock, 
   FileText, 
   Users, 
   Plus,
-  TrendingUp,
-  AlertCircle,
-  CheckCircle2,
-  XCircle,
   CalendarDays,
-  BarChart3,
   Bell,
   Settings
 } from 'lucide-react'
 
 export default function DashboardPage() {
   const [currentTime] = useState(new Date())
+  const [isLoading, setIsLoading] = useState(false)
 
-  // Mock data - in real app this would come from API
   const user = {
-    name: 'Sarah Johnson',
-    role: 'Senior Developer',
-    department: 'Engineering',
-    avatar: 'SJ'
+    name: 'User',
+    role: 'Employee',
+    department: 'Department',
+    avatar: 'U'
   }
 
   const stats = {
-    pendingRequests: 2,
-    approvedThisMonth: 8,
-    remainingDays: 18,
-    totalAllocation: 25,
-    teamMembers: 12,
-    upcomingLeaves: 3
+    pendingRequests: 0,
+    approvedThisMonth: 0,
+    remainingDays: 0,
+    totalAllocation: 0,
+    teamMembers: 0,
+    upcomingLeaves: 0
   }
 
-  const recentRequests = [
-    {
-      id: 1,
-      type: 'Annual Leave',
-      startDate: '2024-02-15',
-      endDate: '2024-02-19',
-      status: 'pending',
-      days: 5,
-      submittedAt: '2024-01-28'
-    },
-    {
-      id: 2,
-      type: 'Sick Leave',
-      startDate: '2024-01-22',
-      endDate: '2024-01-22',
-      status: 'approved',
-      days: 1,
-      submittedAt: '2024-01-22'
-    },
-    {
-      id: 3,
-      type: 'Personal Leave',
-      startDate: '2024-01-08',
-      endDate: '2024-01-09',
-      status: 'approved',
-      days: 2,
-      submittedAt: '2024-01-05'
-    }
-  ]
+  const recentRequests: Array<{
+    id: number
+    type: string
+    startDate: string
+    endDate: string
+    status: LeaveStatus
+    days: number
+    submittedAt: string
+  }> = []
 
-  const upcomingLeaves = [
-    { name: 'Mike Chen', type: 'Annual', dates: 'Feb 12-16', avatar: 'MC' },
-    { name: 'Lisa Park', type: 'Maternity', dates: 'Feb 20-May 20', avatar: 'LP' },
-    { name: 'John Smith', type: 'Annual', dates: 'Feb 26-28', avatar: 'JS' }
-  ]
+  const upcomingLeaves: Array<{
+    name: string
+    type: string
+    dates: string
+    avatar: string
+  }> = []
 
-  const notifications = [
-    { id: 1, message: 'Your leave request for Feb 15-19 is pending approval', type: 'info', time: '2 hours ago' },
-    { id: 2, message: 'Document "Company Handbook 2024" expires in 30 days', type: 'warning', time: '1 day ago' },
-    { id: 3, message: 'Team calendar updated with new holidays', type: 'info', time: '3 days ago' }
-  ]
+  const notifications: Array<{
+    id: number
+    message: string
+    type: string
+    time: string
+  }> = []
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'approved':
-        return <CheckCircle2 className="h-4 w-4 text-green-600" />
-      case 'rejected':
-        return <XCircle className="h-4 w-4 text-red-600" />
-      case 'pending':
-        return <Clock className="h-4 w-4 text-yellow-600" />
-      default:
-        return <AlertCircle className="h-4 w-4 text-gray-600" />
-    }
-  }
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'approved':
-        return 'bg-green-100 text-green-800 border-green-200'
-      case 'rejected':
-        return 'bg-red-100 text-red-800 border-red-200'
-      case 'pending':
-        return 'bg-yellow-100 text-yellow-800 border-yellow-200'
-      default:
-        return 'bg-gray-100 text-gray-800 border-gray-200'
-    }
-  }
 
   return (
-    <div className="space-y-8 p-6 max-w-7xl mx-auto">
+    <div className="space-y-6 md:space-y-8 page-transition">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-slate-900">
+      <header className="flex flex-col gap-4 sm:gap-6 sm:flex-row sm:items-center sm:justify-between animate-fade-in">
+        <div className="space-y-1.5 md:space-y-2">
+          <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl lg:text-5xl">
             Good {currentTime.getHours() < 12 ? 'morning' : currentTime.getHours() < 17 ? 'afternoon' : 'evening'}, {user.name.split(' ')[0]}
           </h1>
-          <p className="text-slate-600 mt-1">
-            {user.role} • {user.department} • {currentTime.toLocaleDateString('en-US', { 
-              weekday: 'long', 
-              year: 'numeric', 
-              month: 'long', 
-              day: 'numeric' 
+          <p className="text-sm md:text-base text-muted-foreground leading-relaxed">
+            {user.role} • {user.department} • {currentTime.toLocaleDateString('en-US', {
+              weekday: 'long',
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric'
             })}
           </p>
         </div>
-        <div className="flex items-center space-x-3">
-          <Button variant="outline" size="sm">
-            <Bell className="h-4 w-4 mr-2" />
-            Notifications
+        <div className="flex items-center gap-2 md:gap-3" role="group" aria-label="Quick actions">
+          <Button variant="outline" size="default" aria-label="View notifications" className="hidden sm:flex">
+            <Bell className="h-4 w-4 mr-2" aria-hidden="true" />
+            <span className="hidden md:inline">Notifications</span>
+            <span className="md:hidden">Alerts</span>
           </Button>
           <Link href="/dashboard/leaves/new">
-            <Button className="bg-blue-600 hover:bg-blue-700">
-              <Plus className="h-4 w-4 mr-2" />
-              New Request
+            <Button aria-label="Create new leave request" className="w-full sm:w-auto">
+              <Plus className="h-4 w-4 mr-2" aria-hidden="true" />
+              <span className="hidden sm:inline">New Request</span>
+              <span className="sm:hidden">New</span>
             </Button>
           </Link>
         </div>
-      </div>
+      </header>
 
       {/* Stats Cards */}
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-        <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow duration-300">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-slate-600">Pending Requests</CardTitle>
-            <div className="p-2 bg-yellow-100 rounded-lg">
-              <Clock className="h-4 w-4 text-yellow-600" />
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-slate-900">{stats.pendingRequests}</div>
-            <p className="text-xs text-slate-500 flex items-center mt-1">
-              <TrendingUp className="h-3 w-3 mr-1" />
-              Awaiting approval
-            </p>
-          </CardContent>
-        </Card>
+      <section aria-label="Leave statistics overview">
+      {isLoading ? (
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4" role="status" aria-label="Loading statistics">
+          {[...Array(4)].map((_, i) => (
+            <Card key={i}>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <Skeleton className="h-4 w-24" />
+                <Skeleton className="h-4 w-4 rounded" />
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  <Skeleton className="h-8 w-16" />
+                  <Skeleton className="h-3 w-32" />
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      ) : (
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4" role="list" aria-label="Leave statistics">
+          <StatCard
+            title="Pending Requests"
+            value={stats.pendingRequests}
+            icon={Clock}
+          />
 
-        <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow duration-300">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-slate-600">Days Used</CardTitle>
-            <div className="p-2 bg-blue-100 rounded-lg">
-              <Calendar className="h-4 w-4 text-blue-600" />
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-slate-900">{stats.approvedThisMonth}</div>
-            <p className="text-xs text-slate-500 flex items-center mt-1">
-              <span>This year so far</span>
-            </p>
-          </CardContent>
-        </Card>
+          <StatCard
+            title="Days Used"
+            value={stats.approvedThisMonth}
+            icon={Calendar}
+          />
 
-        <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow duration-300">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-slate-600">Remaining Balance</CardTitle>
-            <div className="p-2 bg-green-100 rounded-lg">
-              <FileText className="h-4 w-4 text-green-600" />
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-slate-900">{stats.remainingDays}</div>
-            <p className="text-xs text-slate-500 flex items-center mt-1">
-              <span>of {stats.totalAllocation} total days</span>
-            </p>
-            <div className="w-full bg-slate-200 rounded-full h-2 mt-2">
-              <div 
-                className="bg-green-600 h-2 rounded-full" 
-                style={{ width: `${(stats.remainingDays / stats.totalAllocation) * 100}%` }}
-              ></div>
-            </div>
-          </CardContent>
-        </Card>
+          <StatCard
+            title="Remaining Balance"
+            value={stats.remainingDays}
+            icon={FileText}
+          />
 
-        <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow duration-300">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-slate-600">Team Status</CardTitle>
-            <div className="p-2 bg-purple-100 rounded-lg">
-              <Users className="h-4 w-4 text-purple-600" />
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-slate-900">{stats.teamMembers - stats.upcomingLeaves}</div>
-            <p className="text-xs text-slate-500 flex items-center mt-1">
-              <span>of {stats.teamMembers} available</span>
-            </p>
-          </CardContent>
-        </Card>
-      </div>
+          <StatCard
+            title="Team Status"
+            value={stats.teamMembers - stats.upcomingLeaves}
+            icon={Users}
+          />
+        </div>
+      )}
+      </section>
 
-      <div className="grid gap-8 lg:grid-cols-3">
+      <div className="grid gap-4 md:gap-6 lg:grid-cols-3">
         {/* Recent Requests */}
-        <Card className="lg:col-span-2 border-0 shadow-lg">
-          <CardHeader className="pb-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle className="text-lg font-semibold text-slate-900">Recent Leave Requests</CardTitle>
-                <CardDescription className="text-slate-600">
+        <Card className="lg:col-span-2" role="region" aria-labelledby="recent-requests-title">
+          <CardHeader className="space-y-2 pb-4 md:pb-6">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <div className="space-y-1">
+                <CardTitle id="recent-requests-title" className="text-xl md:text-2xl font-semibold tracking-tight">Recent Leave Requests</CardTitle>
+                <CardDescription className="text-sm md:text-base leading-relaxed">
                   Track your latest submissions and their status
                 </CardDescription>
               </div>
-              <Link href="/dashboard/leaves">
-                <Button variant="outline" size="sm">View All</Button>
+              <Link href="/dashboard/leaves" className="sm:shrink-0">
+                <Button variant="outline" size="sm" className="w-full sm:w-auto">View All</Button>
               </Link>
             </div>
           </CardHeader>
-          <CardContent className="space-y-4">
-            {recentRequests.map((request) => (
-              <div key={request.id} className="flex items-center justify-between p-4 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors">
-                <div className="flex items-center space-x-4">
-                  {getStatusIcon(request.status)}
-                  <div>
-                    <p className="font-medium text-slate-900">{request.type}</p>
-                    <p className="text-sm text-slate-600">
-                      {new Date(request.startDate).toLocaleDateString()} - {new Date(request.endDate).toLocaleDateString()}
-                    </p>
-                    <p className="text-xs text-slate-500">
-                      Submitted {new Date(request.submittedAt).toLocaleDateString()}
-                    </p>
+          <CardContent>
+            {isLoading ? (
+              <div className="space-y-3" role="status" aria-label="Loading leave requests">
+                {[...Array(3)].map((_, i) => (
+                  <div key={i} className="flex items-center justify-between p-4 rounded-lg border">
+                    <div className="flex items-center gap-4 flex-1">
+                      <Skeleton className="h-4 w-4 rounded-full" />
+                      <div className="space-y-2 flex-1">
+                        <Skeleton className="h-4 w-32" />
+                        <Skeleton className="h-3 w-48" />
+                        <Skeleton className="h-3 w-40" />
+                      </div>
+                    </div>
+                    <div className="space-y-2 text-right">
+                      <Skeleton className="h-6 w-20 ml-auto" />
+                      <Skeleton className="h-3 w-16 ml-auto" />
+                    </div>
                   </div>
-                </div>
-                <div className="text-right">
-                  <Badge className={`${getStatusColor(request.status)} border`}>
-                    {request.status.charAt(0).toUpperCase() + request.status.slice(1)}
-                  </Badge>
-                  <p className="text-sm text-slate-600 mt-1">{request.days} day{request.days > 1 ? 's' : ''}</p>
-                </div>
+                ))}
               </div>
-            ))}
+            ) : recentRequests.length === 0 ? (
+              <EmptyState
+                icon={Calendar}
+                title="No leave requests yet"
+                description="You haven't submitted any leave requests. Click the button below to create your first request."
+                action={
+                  <Button onClick={() => window.location.href = '/dashboard/leaves/new'}>
+                    Request Leave
+                  </Button>
+                }
+              />
+            ) : (
+              <div className="space-y-2 md:space-y-3" role="list" aria-label="Recent leave requests">
+                {recentRequests.map((request) => {
+                  const StatusIcon = getStatusIcon(request.status)
+                  return (
+                    <div key={request.id} role="listitem" className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-3 md:p-4 rounded-lg border hover:border-primary/50 transition-colors duration-200">
+                      <div className="flex items-start sm:items-center gap-3 md:gap-4 min-w-0 flex-1">
+                        <StatusIcon className="h-4 w-4 flex-shrink-0 mt-0.5 sm:mt-0" aria-hidden="true" />
+                        <div className="space-y-1 min-w-0 flex-1">
+                          <p className="font-medium text-sm md:text-base leading-tight truncate">{request.type}</p>
+                          <p className="text-xs md:text-sm text-muted-foreground leading-tight">
+                            {new Date(request.startDate).toLocaleDateString()} - {new Date(request.endDate).toLocaleDateString()}
+                          </p>
+                          <p className="text-xs text-muted-foreground leading-tight">
+                            Submitted {new Date(request.submittedAt).toLocaleDateString()}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex sm:flex-col items-center sm:items-end justify-between sm:justify-start gap-2 sm:gap-1 sm:text-right shrink-0">
+                        <StatusBadge status={request.status} showIcon={false} className="text-xs" />
+                        <p className="text-xs md:text-sm text-muted-foreground leading-tight">{request.days} day{request.days > 1 ? 's' : ''}</p>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
           </CardContent>
         </Card>
 
         {/* Sidebar */}
-        <div className="space-y-6">
+        <aside className="space-y-6" aria-label="Dashboard sidebar">
           {/* Quick Actions */}
-          <Card className="border-0 shadow-lg">
-            <CardHeader className="pb-4">
-              <CardTitle className="text-lg font-semibold text-slate-900">Quick Actions</CardTitle>
+          <Card role="region" aria-labelledby="quick-actions-title">
+            <CardHeader className="space-y-1 pb-6">
+              <CardTitle id="quick-actions-title" className="text-xl font-semibold tracking-tight">Quick Actions</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-3">
-              <Link href="/dashboard/leaves/new">
-                <Button className="w-full justify-start bg-blue-600 hover:bg-blue-700 text-white">
-                  <Plus className="mr-2 h-4 w-4" />
-                  Request Leave
-                </Button>
-              </Link>
-              <Link href="/dashboard/team">
-                <Button className="w-full justify-start" variant="outline">
-                  <CalendarDays className="mr-2 h-4 w-4" />
-                  Team Calendar
-                </Button>
-              </Link>
-              <Link href="/dashboard/documents">
-                <Button className="w-full justify-start" variant="outline">
-                  <FileText className="mr-2 h-4 w-4" />
-                  Documents
-                </Button>
-              </Link>
-              <Link href="/dashboard/profile">
-                <Button className="w-full justify-start" variant="outline">
-                  <Settings className="mr-2 h-4 w-4" />
-                  Settings
-                </Button>
-              </Link>
+            <CardContent>
+              {isLoading ? (
+                <div className="space-y-3" role="status" aria-label="Loading quick actions">
+                  {[...Array(4)].map((_, i) => (
+                    <Skeleton key={i} className="h-10 w-full" />
+                  ))}
+                </div>
+              ) : (
+                <nav className="space-y-3" aria-label="Quick action links">
+                  <Link href="/dashboard/leaves/new">
+                    <Button className="w-full justify-start" size="default" aria-label="Request new leave">
+                      <Plus className="mr-2 h-4 w-4" aria-hidden="true" />
+                      Request Leave
+                    </Button>
+                  </Link>
+                  <Link href="/dashboard/team">
+                    <Button className="w-full justify-start" variant="outline" size="default" aria-label="View team calendar">
+                      <CalendarDays className="mr-2 h-4 w-4" aria-hidden="true" />
+                      Team Calendar
+                    </Button>
+                  </Link>
+                  <Link href="/dashboard/documents">
+                    <Button className="w-full justify-start" variant="outline" size="default" aria-label="View documents">
+                      <FileText className="mr-2 h-4 w-4" aria-hidden="true" />
+                      Documents
+                    </Button>
+                  </Link>
+                  <Link href="/dashboard/profile">
+                    <Button className="w-full justify-start" variant="outline" size="default" aria-label="View profile settings">
+                      <Settings className="mr-2 h-4 w-4" aria-hidden="true" />
+                      Settings
+                    </Button>
+                  </Link>
+                </nav>
+              )}
             </CardContent>
           </Card>
 
           {/* Upcoming Team Leaves */}
-          <Card className="border-0 shadow-lg">
-            <CardHeader className="pb-4">
-              <CardTitle className="text-lg font-semibold text-slate-900">Upcoming Team Leaves</CardTitle>
+          <Card role="region" aria-labelledby="upcoming-leaves-title">
+            <CardHeader className="space-y-1 pb-6">
+              <CardTitle id="upcoming-leaves-title" className="text-xl font-semibold tracking-tight">Upcoming Team Leaves</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-3">
-              {upcomingLeaves.map((leave, index) => (
-                <div key={index} className="flex items-center space-x-3">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-100 text-xs font-medium text-blue-600">
-                    {leave.avatar}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-slate-900 truncate">{leave.name}</p>
-                    <p className="text-xs text-slate-500">{leave.type} • {leave.dates}</p>
-                  </div>
+            <CardContent>
+              {isLoading ? (
+                <div className="space-y-4">
+                  {[...Array(3)].map((_, i) => (
+                    <div key={i} className="flex items-center gap-3">
+                      <Skeleton className="h-10 w-10 rounded-full" />
+                      <div className="flex-1 space-y-2">
+                        <Skeleton className="h-4 w-24" />
+                        <Skeleton className="h-3 w-32" />
+                      </div>
+                    </div>
+                  ))}
+                  <Skeleton className="h-9 w-full mt-4" />
                 </div>
-              ))}
-              <Link href="/dashboard/team">
-                <Button variant="outline" size="sm" className="w-full mt-3">
-                  View Full Calendar
-                </Button>
-              </Link>
+              ) : (
+                <div className="space-y-4" role="list" aria-label="Upcoming team member leaves">
+                  {upcomingLeaves.map((leave, index) => (
+                    <div key={index} role="listitem" className="flex items-center gap-3">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-sm font-medium text-primary">
+                        {leave.avatar}
+                      </div>
+                      <div className="flex-1 min-w-0 space-y-1">
+                        <p className="text-sm font-medium truncate leading-tight">{leave.name}</p>
+                        <p className="text-xs text-muted-foreground leading-tight">{leave.type} • {leave.dates}</p>
+                      </div>
+                    </div>
+                  ))}
+                  <Link href="/dashboard/team">
+                    <Button variant="outline" size="sm" className="w-full mt-4" aria-label="View full team calendar">
+                      View Full Calendar
+                    </Button>
+                  </Link>
+                </div>
+              )}
             </CardContent>
           </Card>
 
           {/* Notifications */}
-          <Card className="border-0 shadow-lg">
-            <CardHeader className="pb-4">
-              <CardTitle className="text-lg font-semibold text-slate-900">Recent Updates</CardTitle>
+          <Card role="region" aria-labelledby="recent-updates-title">
+            <CardHeader className="space-y-1 pb-6">
+              <CardTitle id="recent-updates-title" className="text-xl font-semibold tracking-tight">Recent Updates</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-3">
-              {notifications.slice(0, 3).map((notification) => (
-                <div key={notification.id} className="flex space-x-3">
-                  <div className={`flex h-2 w-2 mt-2 rounded-full ${
-                    notification.type === 'warning' ? 'bg-yellow-400' : 'bg-blue-400'
-                  }`} />
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm text-slate-900">{notification.message}</p>
-                    <p className="text-xs text-slate-500">{notification.time}</p>
-                  </div>
+            <CardContent>
+              {isLoading ? (
+                <div className="space-y-4">
+                  {[...Array(3)].map((_, i) => (
+                    <div key={i} className="flex gap-3">
+                      <Skeleton className="h-2 w-2 rounded-full mt-2 flex-shrink-0" />
+                      <div className="flex-1 space-y-2">
+                        <Skeleton className="h-4 w-full" />
+                        <Skeleton className="h-3 w-20" />
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              ))}
+              ) : notifications.length === 0 ? (
+                <NoNotificationsEmpty />
+              ) : (
+                <div className="space-y-4">
+                  {notifications.slice(0, 3).map((notification) => (
+                    <div key={notification.id} className="flex gap-3">
+                      <div 
+                        className={`flex h-2 w-2 mt-2 rounded-full flex-shrink-0 ${
+                          notification.type === 'warning' ? 'bg-warning' : 'bg-info'
+                        }`}
+                        role="img"
+                        aria-label={notification.type === 'warning' ? 'Warning' : 'Information'}
+                      />
+                      <div className="flex-1 min-w-0 space-y-1">
+                        <p className="text-sm leading-relaxed">{notification.message}</p>
+                        <p className="text-xs text-muted-foreground leading-tight">{notification.time}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </CardContent>
           </Card>
-        </div>
+        </aside>
       </div>
     </div>
   )

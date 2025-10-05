@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import type { User } from '@supabase/supabase-js'
+import type { User, Session } from '@supabase/supabase-js'
 
 import { getBrowserClient } from '@/lib/supabase-client'
 import type { LoginCredentials, RegisterCredentials } from '@/types/auth'
@@ -29,7 +29,7 @@ export function useAuth() {
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      async (_event: string, session: Session | null) => {
         setUser(session?.user ?? null)
         setLoading(false)
       }
