@@ -2,7 +2,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/ui/
 import { Badge } from '@/ui/badge'
 import { Avatar, AvatarFallback, AvatarImage } from '@/ui/avatar'
 import { Button } from '@/ui/button'
-import { TeamCalendarSimple } from '@/components/features/team-calendar-simple'
+import { TeamCalendarEnhanced } from '@/components/features/team-calendar-enhanced'
 import { NoTeamMembersEmpty, NoDataEmpty } from '@/lib/production-cleanup/empty-state-templates'
 
 export default function TeamPage() {
@@ -90,8 +90,8 @@ export default function TeamPage() {
           </CardContent>
         </Card>
 
-        {/* Calendar (simplified) */}
-        <TeamCalendarSimple />
+        {/* Calendar (enhanced with overlays) */}
+        <TeamCalendarEnhanced />
       </div>
 
       {/* Upcoming Leaves */}
