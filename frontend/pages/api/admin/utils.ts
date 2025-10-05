@@ -47,3 +47,8 @@ export async function requireAdminOrHr(request: NextRequest | Request): Promise<
 
   return { user, profile, adminClient, supabase }
 }
+
+// Default export required for Next.js API route validation
+export default function handler() {
+  return new Response('Utility file - not a route', { status: 404 })
+}

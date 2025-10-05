@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { createClient } from '@/lib/supabase-server';
 import { getUserProfile } from '@/lib/permissions';
+import { TypedSupabaseClient } from '@/lib/types';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
@@ -43,7 +44,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 }
 
-async function handleGet(req: NextApiRequest, res: NextApiResponse, supabase: any, userId: string, documentId: string) {
+async function handleGet(req: NextApiRequest, res: NextApiResponse, supabase: TypedSupabaseClient, userId: string, documentId: string) {
   // Verify document exists
   const { data: document, error: docError } = await supabase
     .from('company_documents')
@@ -79,7 +80,7 @@ async function handleGet(req: NextApiRequest, res: NextApiResponse, supabase: an
   });
 }
 
-async function handlePost(req: NextApiRequest, res: NextApiResponse, supabase: any, userId: string, documentId: string) {
+async function handlePost(req: NextApiRequest, res: NextApiResponse, supabase: TypedSupabaseClient, userId: string, documentId: string) {
   // Verify document exists
   const { data: document, error: docError } = await supabase
     .from('company_documents')
@@ -169,7 +170,7 @@ async function handlePost(req: NextApiRequest, res: NextApiResponse, supabase: a
   });
 }
 
-async function handleDelete(req: NextApiRequest, res: NextApiResponse, supabase: any, userId: string, documentId: string) {
+async function handleDelete(req: NextApiRequest, res: NextApiResponse, supabase: TypedSupabaseClient, userId: string, documentId: string) {
   const { notifier_id } = req.query;
 
   if (!notifier_id || typeof notifier_id !== 'string') {

@@ -1,15 +1,43 @@
 {
   "extends": [
     "next/core-web-vitals",
-    "next/typescript"
+    "next/typescript",
+    "prettier"
   ],
   "rules": {
-    "@typescript-eslint/no-explicit-any": "warn",
-    "@typescript-eslint/no-unused-vars": "warn",
+    "@typescript-eslint/no-explicit-any": "error",
+    "@typescript-eslint/no-unused-vars": "error",
     "@typescript-eslint/explicit-function-return-type": "off",
     "@typescript-eslint/no-non-null-assertion": "warn",
-    "no-console": "warn",
+    "no-console": "error",
     "prefer-const": "error",
-    "no-var": "error"
-  }
+    "no-var": "error",
+    "no-debugger": "error",
+    "no-alert": "error",
+    "no-eval": "error",
+    "no-implied-eval": "error",
+    "no-new-func": "error",
+    "no-script-url": "error",
+    "no-inline-comments": "warn",
+    "spaced-comment": ["error", "always", { "markers": ["TODO", "FIXME", "NOTE"] }],
+    "no-warning-comments": ["warn", { "terms": ["todo", "fixme", "hack", "xxx"], "location": "start" }],
+    "no-process-env": "off",
+    "no-process-exit": "error"
+  },
+  "overrides": [
+    {
+      "files": ["**/*.test.*", "**/*.spec.*", "**/__tests__/**/*"],
+      "rules": {
+        "no-console": "off",
+        "@typescript-eslint/no-explicit-any": "warn"
+      }
+    },
+    {
+      "files": ["next.config.js", "tailwind.config.js", "postcss.config.js"],
+      "rules": {
+        "no-console": "off",
+        "@typescript-eslint/no-var-requires": "off"
+      }
+    }
+  ]
 }

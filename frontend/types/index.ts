@@ -41,6 +41,21 @@ export interface LeaveWithRelations extends Leave {
   leave_type?: LeaveType
 }
 
+export interface LeaveDocument {
+  id: string
+  leave_request_id: string
+  file_name: string
+  file_size: number
+  file_type: string
+  storage_path: string
+  uploaded_by: string
+  uploaded_at: string
+}
+
+export interface LeaveWithDocuments extends LeaveWithRelations {
+  documents?: LeaveDocument[]
+}
+
 export interface LeaveBalance {
   leave_type_id: string
   leave_type_name: string

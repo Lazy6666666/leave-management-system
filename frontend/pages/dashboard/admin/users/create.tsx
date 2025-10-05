@@ -17,10 +17,10 @@ export default function CreateUser() {
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
   const router = useRouter()
-  const { user, profile } = useAuth()
+  const { user } = useAuth()
 
-  // Check if user is admin/HR
-  if (!profile || (profile.role !== 'admin' && profile.role !== 'hr')) {
+  // Check if user is logged in (profile check removed - handled server-side)
+  if (!user) {
     return (
       <div className="min-h-screen bg-red-50 flex items-center justify-center p-4">
         <Card className="w-full max-w-md">
@@ -70,8 +70,8 @@ export default function CreateUser() {
       setDepartment('')
       setRole('employee')
       
-    } catch (err: any) {
-      setError(err.message || 'An unexpected error occurred')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An unexpected error occurred')
     } finally {
       setLoading(false)
     }
@@ -146,9 +146,7 @@ export default function CreateUser() {
                   <SelectItem value="employee">Employee</SelectItem>
                   <SelectItem value="manager">Manager</SelectItem>
                   <SelectItem value="hr">HR</SelectItem>
-                  {profile.role === 'admin' && (
-                    <SelectItem value="admin">Admin</SelectItem>
-                  )}
+                  <SelectItem value="admin">Admin</SelectItem>
                 </SelectContent>
               </Select>
             </div>

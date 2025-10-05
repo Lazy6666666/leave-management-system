@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { createClient } from '@/lib/supabase-server';
 import { getUserProfile, isAdminOrHr } from '@/lib/permissions';
+import { TypedSupabaseClient } from '@/lib/types';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
@@ -33,7 +34,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 }
 
-async function handleGet(req: NextApiRequest, res: NextApiResponse, supabase: any, userId: string) {
+async function handleGet(req: NextApiRequest, res: NextApiResponse, supabase: TypedSupabaseClient, userId: string) {
   const {
     limit = '50',
     offset = '0',
@@ -64,7 +65,7 @@ async function handleGet(req: NextApiRequest, res: NextApiResponse, supabase: an
 
   // Filter by status
   if (status && typeof status === 'string') {
-    query = query.eq('status', status);
+    query = query.eq('status', status as 'pending' | 'sent' | 'failed' | 'retrying');
   }
 
   // Filter by document
@@ -87,14 +88,10 @@ async function handleGet(req: NextApiRequest, res: NextApiResponse, supabase: an
 
   // If not admin/hr, only show notifications sent to user
   if (profile?.role !== 'admin' && profile?.role !== 'hr') {
-    const { data: userProfile } = await supabase
-      .from('profiles')
-      .select('email')
-      .eq('id', userId)
-      .single();
+    const { data: { user } } = await supabase.auth.getUser();
 
-    if (userProfile?.email) {
-      query = query.eq('recipient_email', userProfile.email);
+    if (user?.email) {
+      query = query.eq('recipient_email', user.email);
     }
   }
 
@@ -113,7 +110,7 @@ async function handleGet(req: NextApiRequest, res: NextApiResponse, supabase: an
   });
 }
 
-async function handlePost(req: NextApiRequest, res: NextApiResponse, supabase: any, userId: string) {
+async function handlePost(req: NextApiRequest, res: NextApiResponse, supabase: TypedSupabaseClient, userId: string) {
   const profile = await getUserProfile(supabase, userId);
 
   if (!profile || !isAdminOrHr(profile.role)) {
@@ -185,7 +182,7 @@ async function handlePost(req: NextApiRequest, res: NextApiResponse, supabase: a
         document_type: document.document_type,
         expiry_date: document.expiry_date,
         custom_message: message || null,
-        sent_by: profile.full_name,
+        sent_by: (profile as { full_name?: string })?.full_name || 'System',
       },
     })
     .select(`

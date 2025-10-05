@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import { DocumentUploadPayload, DocumentQueryParams, documentQuerySchema } from '@/lib/schemas/document'
 import type { UpdateUserRolePayload, UpsertLeaveTypePayload } from '@/lib/schemas/admin'
+import { LeaveType, CompanyDocument, AuditLog, LeaveTypeStat, AdminSummary } from '@/lib/types'
 
 type ApiError = { error?: { code?: string; message?: string } }
 
@@ -72,7 +73,7 @@ export function useLeaveTypes(options?: { includeInactive?: boolean }) {
   const params = new URLSearchParams()
   if (options?.includeInactive) params.set('includeInactive', 'true')
 
-  return useQuery<{ leaveTypes: any[] }>({
+  return useQuery<{ leaveTypes: LeaveType[] }>({
     queryKey: ['admin-leave-types', options],
     queryFn: () => fetcher(`/api/admin/leave-types?${params.toString()}`),
   })
@@ -111,7 +112,7 @@ export function useDeleteLeaveType() {
 }
 
 export function useAdminReports() {
-  return useQuery<{ summary: any }>({
+  return useQuery<{ summary: AdminSummary }>({
     queryKey: ['admin-reports'],
     queryFn: () => fetcher('/api/admin/reports'),
   })
@@ -122,7 +123,7 @@ export function useAuditLogs(filters?: { table?: string; userId?: string; enable
   if (filters?.table) params.set('table', filters.table)
   if (filters?.userId) params.set('userId', filters.userId)
 
-  return useQuery<{ logs: any[]; total: number; hasMore: boolean }>({
+  return useQuery<{ logs: AuditLog[]; total: number; hasMore: boolean }>({
     queryKey: ['admin-audit-logs', filters],
     queryFn: () => fetcher(`/api/admin/audit-logs?${params.toString()}`),
     enabled: filters?.enabled ?? true,
@@ -142,7 +143,7 @@ export function useDocumentUploads(params: DocumentQueryParams) {
     }
   })
 
-  return useQuery<{ documents: any[]; total: number; hasMore: boolean }>({
+  return useQuery<{ documents: CompanyDocument[]; total: number; hasMore: boolean }>({
     queryKey: ['admin-documents', validatedParams],
     queryFn: () => fetcher('/api/documents?' + searchParams.toString()),
   })
@@ -151,9 +152,9 @@ export function useDocumentUploads(params: DocumentQueryParams) {
 export function useDocumentUpload() {
   const queryClient = useQueryClient()
 
-  return useMutation<{ document: any }, Error, DocumentUploadPayload>({
+  return useMutation<{ document: CompanyDocument }, Error, DocumentUploadPayload>({
     mutationFn: (payload) =>
-      fetcher<{ document: any }>('/api/documents', {
+      fetcher<{ document: CompanyDocument }>('/api/documents', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),

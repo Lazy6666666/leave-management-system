@@ -1,6 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { createClient } from '@/lib/supabase-server';
 import { getUserProfile, isAdminOrHr } from '@/lib/permissions';
+import { TypedSupabaseClient } from '@/lib/types';
+import { TablesUpdate } from '@/lib/database.types';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
@@ -43,7 +45,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 }
 
-async function handleGet(req: NextApiRequest, res: NextApiResponse, supabase: any, userId: string, documentId: string) {
+async function handleGet(req: NextApiRequest, res: NextApiResponse, supabase: TypedSupabaseClient, userId: string, documentId: string) {
   const profile = await getUserProfile(supabase, userId);
 
   const { data: document, error } = await supabase
@@ -74,7 +76,7 @@ async function handleGet(req: NextApiRequest, res: NextApiResponse, supabase: an
   return res.status(200).json({ document });
 }
 
-async function handleUpdate(req: NextApiRequest, res: NextApiResponse, supabase: any, userId: string, documentId: string) {
+async function handleUpdate(req: NextApiRequest, res: NextApiResponse, supabase: TypedSupabaseClient, userId: string, documentId: string) {
   const profile = await getUserProfile(supabase, userId);
 
   if (!profile || !isAdminOrHr(profile.role)) {
@@ -89,7 +91,7 @@ async function handleUpdate(req: NextApiRequest, res: NextApiResponse, supabase:
   const { name, document_type, expiry_date, is_public, metadata } = req.body;
 
   // Build update object
-  const updates: any = {};
+  const updates: TablesUpdate<'company_documents'> = {};
   if (name !== undefined) updates.name = name;
   if (document_type !== undefined) updates.document_type = document_type;
   if (expiry_date !== undefined) updates.expiry_date = expiry_date;
@@ -124,7 +126,7 @@ async function handleUpdate(req: NextApiRequest, res: NextApiResponse, supabase:
   });
 }
 
-async function handleDelete(req: NextApiRequest, res: NextApiResponse, supabase: any, userId: string, documentId: string) {
+async function handleDelete(req: NextApiRequest, res: NextApiResponse, supabase: TypedSupabaseClient, userId: string, documentId: string) {
   const profile = await getUserProfile(supabase, userId);
 
   if (!profile || !isAdminOrHr(profile.role)) {
