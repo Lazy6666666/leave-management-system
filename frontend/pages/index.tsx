@@ -98,7 +98,7 @@ export default function Home() {
             
             <h1 className="text-4xl font-bold tracking-tight text-foreground sm:text-6xl lg:text-7xl">
               Streamline Your
-              <span className="bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent dark:bg-none dark:text-white uppercase">
                 {" "}Leave Management
               </span>
             </h1>

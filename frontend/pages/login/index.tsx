@@ -83,8 +83,8 @@ export default function Login() {
       </header>
 
       {/* Main Content */}
-      <div className="flex-1 flex items-center justify-center p-4">
-        <div className="w-full max-w-md space-y-6">
+      <div className="flex-1 flex items-center justify-center p-4 md:p-6">
+        <div className="w-full max-w-md space-y-4 md:space-y-6">
           {/* Security Badge */}
           <div className="text-center">
             <Badge variant="outline" className="px-4 py-2">
@@ -94,14 +94,14 @@ export default function Login() {
           </div>
 
           <Card className="border-2 shadow-lg">
-            <CardHeader className="text-center space-y-2">
-              <CardTitle className="text-2xl font-bold">Welcome Back</CardTitle>
-              <CardDescription className="text-base">
+            <CardHeader className="text-center space-y-1.5 md:space-y-2 p-4 md:p-6">
+              <CardTitle className="text-xl md:text-2xl font-bold">Welcome Back</CardTitle>
+              <CardDescription className="text-sm md:text-base">
                 Sign in to access your leave management dashboard
               </CardDescription>
             </CardHeader>
-            <CardContent>
-              <form onSubmit={handleSignIn} className="space-y-4">
+            <CardContent className="p-4 md:p-6">
+              <form onSubmit={handleSignIn} className="space-y-3 md:space-y-4">
                 {error && (
                   <div className="bg-destructive/10 border border-destructive/20 text-destructive px-4 py-3 rounded-lg flex items-start space-x-2">
                     <AlertCircle className="h-5 w-5 mt-0.5 flex-shrink-0" />
@@ -178,13 +178,13 @@ export default function Login() {
                 </Button>
               </form>
 
-              <div className="mt-6 space-y-4">
-                <div className="relative">
+              <div className="mt-6 space-y-5">
+                <div className="relative pt-2">
                   <div className="absolute inset-0 flex items-center">
                     <span className="w-full border-t" />
                   </div>
                   <div className="relative flex justify-center text-xs uppercase">
-                    <span className="bg-background px-2 text-muted-foreground">
+                    <span className="bg-background px-2 mt-2 inline-block text-muted-foreground tracking-wide">
                       Need help?
                     </span>
                   </div>
