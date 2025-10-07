@@ -9,13 +9,13 @@ import { Badge } from '@/ui/badge'
 import { ThemeToggle } from '@/components/theme-toggle'
 import { getBrowserClient } from '@/lib/supabase-client'
 import {
-  CalendarDays,
   Eye,
   EyeOff,
   ArrowLeft,
   Shield,
   AlertCircle,
-  CheckCircle2
+  CheckCircle2,
+  CalendarDays
 } from 'lucide-react'
 
 export default function Login() {
@@ -51,20 +51,19 @@ export default function Login() {
       setLoading(false)
     }
   }
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 flex flex-col">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 flex flex-col" suppressHydrationWarning>
       {/* Header */}
-      <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60" suppressHydrationWarning>
         <nav className="mx-auto max-w-7xl px-6 lg:px-8">
           <div className="flex h-16 items-center justify-between">
-            <Link href="/" className="flex items-center space-x-3 hover:opacity-80 transition-opacity">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary">
+            <Link href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity" suppressHydrationWarning>
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary" suppressHydrationWarning>
                 <CalendarDays className="h-6 w-6 text-primary-foreground" />
               </div>
-              <div>
+              <div className="flex flex-col sm:flex-row sm:items-center sm:gap-2">
                 <span className="text-xl font-bold text-foreground">LeaveFlow</span>
-                <Badge variant="secondary" className="ml-2 text-xs">
+                <Badge variant="secondary" className="text-xs w-fit">
                   Enterprise
                 </Badge>
               </div>
@@ -93,7 +92,7 @@ export default function Login() {
             </Badge>
           </div>
 
-          <Card className="border-2 shadow-lg">
+          <Card className="border-2 border-primary/20 shadow-lg shadow-primary/10">
             <CardHeader className="text-center space-y-1.5 md:space-y-2 p-4 md:p-6">
               <CardTitle className="text-xl md:text-2xl font-bold">Welcome Back</CardTitle>
               <CardDescription className="text-sm md:text-base">
@@ -123,7 +122,7 @@ export default function Login() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
-                    className="h-11"
+                    className="h-11 border-primary/20 focus:border-primary focus:ring-primary/20"
                     autoComplete="email"
                   />
                 </div>
@@ -140,7 +139,7 @@ export default function Login() {
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       required
-                      className="h-11 pr-10"
+                      className="h-11 pr-10 border-primary/20 focus:border-primary focus:ring-primary/20"
                       autoComplete="current-password"
                     />
                     <Button
@@ -159,9 +158,9 @@ export default function Login() {
                   </div>
                 </div>
 
-                <Button 
-                  type="submit" 
-                  className="w-full h-11 text-base" 
+                <Button
+                  type="submit"
+                  className="w-full h-11 text-base"
                   disabled={loading}
                 >
                   {loading ? (
@@ -178,27 +177,21 @@ export default function Login() {
                 </Button>
               </form>
 
-              <div className="mt-6 space-y-5">
-                <div className="relative pt-2">
-                  <div className="absolute inset-0 flex items-center">
-                    <span className="w-full border-t" />
-                  </div>
-                  <div className="relative flex justify-center text-xs uppercase">
-                    <span className="bg-background px-2 mt-2 inline-block text-muted-foreground tracking-wide">
+                <div className="text-center space-y-3">
+                  <div className="border-t border-border pt-4">
+                    <p className="text-xs uppercase text-muted-foreground tracking-wide font-medium mb-3">
                       Need help?
-                    </span>
+                    </p>
+                    <div className="space-y-2">
+                      <p className="text-sm text-muted-foreground">
+                        Forgot your password? Contact your IT administrator.
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        Need an account? Contact your HR department.
+                      </p>
+                    </div>
                   </div>
                 </div>
-
-                <div className="text-center space-y-2">
-                  <p className="text-sm text-muted-foreground">
-                    Forgot your password? Contact your IT administrator.
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    Need an account? Contact your HR department.
-                  </p>
-                </div>
-              </div>
             </CardContent>
           </Card>
 

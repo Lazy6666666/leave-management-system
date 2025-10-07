@@ -2,8 +2,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/ui/
 import { Badge } from '@/ui/badge'
 import { Avatar, AvatarFallback, AvatarImage } from '@/ui/avatar'
 import { Button } from '@/ui/button'
-import { TeamCalendar } from '@/components/features/team-calendar'
 import { NoTeamMembersEmpty, NoDataEmpty } from '@/lib/production-cleanup/empty-state-templates'
+import { TeamCalendar } from '@/components/features/TeamCalendar'
 
 export default function TeamPage() {
   // Using empty arrays to show empty states
@@ -34,7 +34,7 @@ export default function TeamPage() {
     <div className="space-y-6 md:space-y-8 page-transition">
       {/* Header */}
       <div className="space-y-1">
-        <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Team Calendar</h1>
+        <h1 className="text-2xl md:text-3xl font-bold tracking-tight" suppressHydrationWarning={true}>Team Calendar</h1>
         <p className="text-sm md:text-base text-muted-foreground">
           View team availability and upcoming leave schedules
         </p>
@@ -60,7 +60,7 @@ export default function TeamPage() {
                   <div key={member.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-3 md:p-4 border rounded-lg hover:bg-accent/50 transition-colors">
                     <div className="flex items-center space-x-3 md:space-x-4 min-w-0 flex-1">
                       <Avatar className="h-9 w-9 md:h-10 md:w-10 shrink-0">
-                        <AvatarImage src={member.avatar} />
+                        <AvatarImage src={member.avatar || "/placeholder-avatar.svg"} />
                         <AvatarFallback className="bg-primary/10 text-primary text-xs md:text-sm">
                           {member.name.split(' ').map(n => n[0]).join('')}
                         </AvatarFallback>
@@ -90,8 +90,18 @@ export default function TeamPage() {
           </CardContent>
         </Card>
 
-        {/* Team Calendar */}
-        <TeamCalendar />
+        {/* Team Calendar with Leave Status */}
+        <Card>
+          <CardHeader className="p-4 md:p-6">
+            <CardTitle className="text-lg md:text-xl" suppressHydrationWarning={true}>Team Calendar</CardTitle>
+            <CardDescription className="text-sm mt-1">
+                Team availability
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="p-0 md:p-0 flex justify-center">
+            <TeamCalendar />
+          </CardContent>
+        </Card>
       </div>
 
       {/* Upcoming Leaves */}

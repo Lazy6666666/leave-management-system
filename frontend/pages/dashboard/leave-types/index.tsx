@@ -1,3 +1,4 @@
+import * as React from 'react';
 import { useState } from 'react';
 import { useRouter } from 'next/router';
 import { PageHeader } from '@/components/ui/page-header';
@@ -371,7 +372,7 @@ export default function LeaveTypesPage() {
               </Button>
               <Button
                 type="submit"
-                loading={createMutation.isPending || updateMutation.isPending}
+                disabled={createMutation.isPending || updateMutation.isPending}
               >
                 {editingLeaveType ? 'Update' : 'Create'}
               </Button>
@@ -412,7 +413,7 @@ export default function LeaveTypesPage() {
               type="button"
               variant="destructive"
               onClick={handleDelete}
-              loading={deleteMutation.isPending}
+              disabled={deleteMutation.isPending}
             >
               Delete
             </Button>

@@ -314,8 +314,8 @@ export async function validateOwnership(
 
   if (resourceType === 'document') {
     const { data: document } = await supabase
-      .from('leave_documents')
-      .select('uploaded_by, leave_request:leaves!leave_documents_leave_request_id_fkey(requester_id)')
+      .from('company_documents')
+      .select('uploaded_by, leave_request:leaves!company_documents_leave_request_id_fkey(requester_id)')
       .eq('id', resourceId)
       .single()
 

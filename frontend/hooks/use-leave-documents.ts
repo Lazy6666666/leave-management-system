@@ -24,7 +24,7 @@ export function useLeaveDocuments(options?: UseLeaveDocumentsOptions) {
       let query = supabase
         .from('leave_documents')
         .select('*')
-        .order('uploaded_at', { ascending: false })
+        .order('created_at', { ascending: false })
 
       if (leaveRequestId) {
         query = query.eq('leave_request_id', leaveRequestId)
@@ -73,7 +73,7 @@ export function useLeaveWithDocuments(leaveRequestId: string, enabled = true) {
         .from('leave_documents')
         .select('*')
         .eq('leave_request_id', leaveRequestId)
-        .order('uploaded_at', { ascending: false })
+        .order('created_at', { ascending: false })
 
       if (documentsError) {
         throw new Error(documentsError.message)
@@ -170,7 +170,7 @@ export function useDeleteDocument() {
 
   return useMutation<void, Error, string>({
     mutationFn: async (documentId: string) => {
-      // Get document details first
+      // Get document details
       const { data: document, error: fetchError } = await supabase
         .from('leave_documents')
         .select('storage_path, leave_request_id')

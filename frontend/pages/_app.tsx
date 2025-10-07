@@ -2,7 +2,7 @@ import type { AppProps } from 'next/app'
 import { useState } from 'react'
 import { useRouter } from 'next/router'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { ThemeProvider } from 'next-themes'
+import { ThemeProvider } from '@/components/providers/theme-provider'
 import { Toaster } from '@/ui/toaster'
 import { SkipLink } from '@/components/ui/skip-link'
 import DashboardLayout from '@/components/layouts/DashboardLayout'
@@ -20,7 +20,6 @@ export default function App({ Component, pageProps }: AppProps) {
       },
     },
   }))
-
   // Check if current route needs dashboard layout
   const isDashboardRoute = router.pathname.startsWith('/dashboard')
 

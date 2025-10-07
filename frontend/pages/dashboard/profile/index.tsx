@@ -6,20 +6,77 @@ import { Input } from '@/ui/input'
 import { Label } from '@/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/ui/select'
 import { Separator } from '@/ui/separator'
+import { useState } from 'react'
+import { useToast } from '@/hooks/use-toast'
 
 export default function ProfilePage() {
-  const user = {
+  const { toast } = useToast()
+  const [isEditing, setIsEditing] = useState(false)
+  const [formData, setFormData] = useState({
     name: '',
     email: '',
     role: '',
-    department: '',
-    joinDate: '',
+    department: ''
+  })
+
+  const user = {
+    name: 'John Doe',
+    email: 'john.doe@company.com',
+    role: 'Software Engineer',
+    department: 'Engineering',
+    joinDate: 'January 2024',
     avatar: '',
     leaveBalance: {
-      annual: { used: 0, total: 0, remaining: 0 },
-      sick: { used: 0, total: 0, remaining: 0 },
-      personal: { used: 0, total: 0, remaining: 0 }
+      annual: { used: 5, total: 25, remaining: 20 },
+      sick: { used: 2, total: 10, remaining: 8 },
+      personal: { used: 1, total: 5, remaining: 4 }
     }
+  }
+
+  const handleSaveChanges = () => {
+    toast({
+      title: "Profile Updated",
+      description: "Your profile information has been saved successfully.",
+    })
+    setIsEditing(false)
+  }
+
+  const handleCancel = () => {
+    setFormData({
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      department: user.department
+    })
+    setIsEditing(false)
+  }
+
+  const handleChangePhoto = () => {
+    toast({
+      title: "Feature Coming Soon",
+      description: "Photo upload functionality will be available soon.",
+    })
+  }
+
+  const handleChangePassword = () => {
+    toast({
+      title: "Feature Coming Soon",
+      description: "Password change functionality will be available soon.",
+    })
+  }
+
+  const handleNotificationSettings = () => {
+    toast({
+      title: "Feature Coming Soon",
+      description: "Notification settings will be available soon.",
+    })
+  }
+
+  const handlePrivacySettings = () => {
+    toast({
+      title: "Feature Coming Soon",
+      description: "Privacy settings will be available soon.",
+    })
   }
 
   return (
@@ -45,13 +102,13 @@ export default function ProfilePage() {
             <CardContent className="space-y-4">
               <div className="flex items-center space-x-4">
                 <Avatar className="h-20 w-20">
-                  <AvatarImage src={user.avatar} />
+                  <AvatarImage src={user.avatar || "/placeholder-avatar.svg"} />
                   <AvatarFallback className="text-lg">
-                    {user.name.split(' ').map(n => n[0]).join('')}
+                    {user.name ? user.name.split(' ').map(n => n[0]).join('') : 'JD'}
                   </AvatarFallback>
                 </Avatar>
                 <div className="space-y-2">
-                  <Button variant="outline">Change Photo</Button>
+                  <Button variant="outline" onClick={handleChangePhoto}>Change Photo</Button>
                   <p className="text-xs text-muted-foreground">
                     JPG, GIF or PNG. Max size 2MB.
                   </p>
@@ -91,8 +148,8 @@ export default function ProfilePage() {
               </div>
 
               <div className="flex gap-2">
-                <Button>Save Changes</Button>
-                <Button variant="outline">Cancel</Button>
+                <Button onClick={handleSaveChanges}>Save Changes</Button>
+                <Button variant="outline" onClick={handleCancel}>Cancel</Button>
               </div>
             </CardContent>
           </Card>
@@ -200,13 +257,13 @@ export default function ProfilePage() {
               <CardTitle>Quick Actions</CardTitle>
             </CardHeader>
             <CardContent className="space-y-2">
-              <Button className="w-full" variant="outline">
+              <Button className="w-full" variant="outline" onClick={handleChangePassword}>
                 Change Password
               </Button>
-              <Button className="w-full" variant="outline">
+              <Button className="w-full" variant="outline" onClick={handleNotificationSettings}>
                 Notification Settings
               </Button>
-              <Button className="w-full" variant="outline">
+              <Button className="w-full" variant="outline" onClick={handlePrivacySettings}>
                 Privacy Settings
               </Button>
             </CardContent>

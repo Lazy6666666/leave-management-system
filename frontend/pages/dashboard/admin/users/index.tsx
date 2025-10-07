@@ -37,7 +37,7 @@ export default function AdminUsersPage() {
   const [roleFilter, setRoleFilter] = useState<string | undefined>(undefined)
   const [deactivateDialogOpen, setDeactivateDialogOpen] = useState(false)
   const [selectedUser, setSelectedUser] = useState<{ id: string; name: string } | null>(null)
-  
+
   const { data, isLoading, isError, error } = useAdminUsers({ search, role: roleFilter })
   const updateRole = useUpdateUserRole()
   const deactivateUser = useDeactivateUser()
@@ -117,10 +117,19 @@ export default function AdminUsersPage() {
 
   return (
     <div className="space-y-8 p-6 md:p-8">
-      <PageHeader
-        title="User Management"
-        description="View and manage user roles and access"
-      />
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <PageHeader
+          title="User Management"
+          description="View and manage user roles and access"
+        />
+        <Button
+          onClick={() => window.location.href = '/dashboard/admin/users/create'}
+          className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-primary-foreground"
+        >
+          <Users className="mr-2 h-4 w-4" />
+          Add User
+        </Button>
+      </div>
 
       {/* Search and Filter Controls */}
       <div className="flex flex-col sm:flex-row gap-4">
@@ -135,24 +144,24 @@ export default function AdminUsersPage() {
         </div>
         <Select value={roleFilter ?? 'all'} onValueChange={(value) => setRoleFilter(value === 'all' ? undefined : value)}>
           <SelectTrigger className="w-full sm:w-40">
-            <SelectValue placeholder="All Roles" />
+            <SelectValue placeholder="Filter by role" />
           </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Roles</SelectItem>
-            <SelectItem value="employee">Employee</SelectItem>
-            <SelectItem value="manager">Manager</SelectItem>
-            <SelectItem value="hr">HR</SelectItem>
-            <SelectItem value="admin">Admin</SelectItem>
+          <SelectContent className="dark:bg-[#1E1E1E] text-white shadow-md border dark:border-[#2E2E2E] rounded-md">
+            <SelectItem value="all" className="px-3 py-2 cursor-pointer dark:hover:bg-[#2A2A2A] dark:focus:bg-[#2A2A2A] focus-visible:ring-2 focus-visible:ring-offset-2 ring-blue-400 focus-visible:ring-offset-[#1E1E1E]">All Roles</SelectItem>
+            <SelectItem value="employee" className="px-3 py-2 cursor-pointer dark:hover:bg-[#2A2A2A] dark:focus:bg-[#2A2A2A] focus-visible:ring-2 focus-visible:ring-offset-2 ring-blue-400 focus-visible:ring-offset-[#1E1E1E]">Employee</SelectItem>
+            <SelectItem value="manager" className="px-3 py-2 cursor-pointer dark:hover:bg-[#2A2A2A] dark:focus:bg-[#2A2A2A] focus-visible:ring-2 focus-visible:ring-offset-2 ring-blue-400 focus-visible:ring-offset-[#1E1E1E]">Manager</SelectItem>
+            <SelectItem value="hr" className="px-3 py-2 cursor-pointer dark:hover:bg-[#2A2A2A] dark:focus:bg-[#2A2A2A] focus-visible:ring-2 focus-visible:ring-offset-2 ring-blue-400 focus-visible:ring-offset-[#1E1E1E]">HR</SelectItem>
+            <SelectItem value="admin" className="px-3 py-2 cursor-pointer dark:hover:bg-[#2A2A2A] dark:focus:bg-[#2A2A2A] focus-visible:ring-2 focus-visible:ring-offset-2 ring-blue-400 focus-visible:ring-offset-[#1E1E1E]">Admin</SelectItem>
           </SelectContent>
         </Select>
       </div>
 
       {/* Users Table */}
       {data?.users && data.users.length > 0 ? (
-        <Card>
+        <Card className="bg-card border shadow-sm">
           <Table>
             <TableHeader>
-              <TableRow>
+              <TableRow className="bg-muted/30">
                 <TableHead className="font-semibold">Name</TableHead>
                 <TableHead className="font-semibold">Email</TableHead>
                 <TableHead className="font-semibold">Department</TableHead>
@@ -163,7 +172,7 @@ export default function AdminUsersPage() {
             </TableHeader>
             <TableBody>
               {data.users.map((user) => (
-                <TableRow key={user.id} className="hover:bg-muted/50 transition-colors">
+                <TableRow key={user.id} className="hover:bg-muted/50 transition-colors border-b">
                   <TableCell className="font-medium">{user.full_name}</TableCell>
                   <TableCell className="text-muted-foreground">{user.email}</TableCell>
                   <TableCell className="text-muted-foreground">{user.department ?? '-'}</TableCell>
@@ -173,19 +182,19 @@ export default function AdminUsersPage() {
                       onValueChange={(value) => handleRoleUpdate(user.id, value as 'employee' | 'manager' | 'admin' | 'hr')}
                       disabled={updateRole.isPending}
                     >
-                      <SelectTrigger className="w-32 h-9">
+                      <SelectTrigger className="w-32 h-9 bg-background border">
                         <SelectValue />
                       </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="employee">Employee</SelectItem>
-                        <SelectItem value="manager">Manager</SelectItem>
-                        <SelectItem value="hr">HR</SelectItem>
-                        <SelectItem value="admin">Admin</SelectItem>
+                      <SelectContent className="dark:bg-[#1E1E1E] text-white shadow-md border dark:border-[#2E2E2E] rounded-md">
+                        <SelectItem value="employee" className="px-3 py-2 cursor-pointer dark:hover:bg-[#2A2A2A] dark:focus:bg-[#2A2A2A] focus-visible:ring-2 focus-visible:ring-offset-2 ring-blue-400 focus-visible:ring-offset-[#1E1E1E]">Employee</SelectItem>
+                        <SelectItem value="manager" className="px-3 py-2 cursor-pointer dark:hover:bg-[#2A2A2A] dark:focus:bg-[#2A2A2A] focus-visible:ring-2 focus-visible:ring-offset-2 ring-blue-400 focus-visible:ring-offset-[#1E1E1E]">Manager</SelectItem>
+                        <SelectItem value="hr" className="px-3 py-2 cursor-pointer dark:hover:bg-[#2A2A2A] dark:focus:bg-[#2A2A2A] focus-visible:ring-2 focus-visible:ring-offset-2 ring-blue-400 focus-visible:ring-offset-[#1E1E1E]">HR</SelectItem>
+                        <SelectItem value="admin" className="px-3 py-2 cursor-pointer dark:hover:bg-[#2A2A2A] dark:focus:bg-[#2A2A2A] focus-visible:ring-2 focus-visible:ring-offset-2 ring-blue-400 focus-visible:ring-offset-[#1E1E1E]">Admin</SelectItem>
                       </SelectContent>
                     </Select>
                   </TableCell>
                   <TableCell>
-                    <Badge variant={user.is_active ? 'default' : 'destructive'} className="font-medium">
+                    <Badge variant={user.is_active ? 'default' : 'destructive'} className="font-medium bg-background border">
                       {user.is_active ? 'Active' : 'Inactive'}
                     </Badge>
                   </TableCell>
@@ -196,7 +205,7 @@ export default function AdminUsersPage() {
                         variant="outline"
                         onClick={() => openDeactivateDialog(user.id, user.full_name)}
                         disabled={deactivateUser.isPending}
-                        className="hover:bg-destructive/10 hover:text-destructive hover:border-destructive/50 transition-colors"
+                        className="hover:bg-destructive/10 hover:text-destructive hover:border-destructive/50 transition-colors bg-background"
                       >
                         Deactivate
                       </Button>

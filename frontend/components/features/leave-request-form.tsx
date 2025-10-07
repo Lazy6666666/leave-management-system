@@ -72,9 +72,9 @@ export function LeaveRequestForm({
   const form = useForm<LeaveRequestFormData>({
     resolver: zodResolver(leaveRequestSchema),
     defaultValues: {
-      leave_type_id: defaultValues?.leave_type_id || "",
-      start_date: defaultValues?.start_date || "",
-      end_date: defaultValues?.end_date || "",
+      leave_type_id: defaultValues?.leave_type_id,
+      start_date: defaultValues?.start_date,
+      end_date: defaultValues?.end_date,
       reason: defaultValues?.reason || "",
     },
   })
