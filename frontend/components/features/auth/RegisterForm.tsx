@@ -1,5 +1,6 @@
 'use client'
 
+import * as React from 'react'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 
@@ -200,7 +201,6 @@ export function RegisterForm({ redirectTo, onSuccess }: RegisterFormProps) {
         <Button 
           type="submit" 
           className="w-full" 
-          loading={registerMutation.isPending}
           disabled={registerMutation.isPending}
         >
           {registerMutation.isPending ? 'Creating account...' : 'Create account'}

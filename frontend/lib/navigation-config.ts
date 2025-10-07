@@ -108,6 +108,13 @@ export const adminNavigation: NavItem[] = [
     roles: ['admin'],
     description: 'Manage leave type configurations',
   },
+  {
+    name: 'Company Documents',
+    href: '/dashboard/admin/documents',
+    icon: FolderOpen,
+    roles: ['admin'],
+    description: 'Manage company documents and licenses',
+  },
 ]
 
 /**

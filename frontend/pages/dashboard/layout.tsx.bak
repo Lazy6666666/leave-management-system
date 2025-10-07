@@ -82,7 +82,7 @@ export default function DashboardLayout({
           <div className="border-t p-4">
             <div className="flex items-center space-x-3">
               <Avatar className="h-8 w-8">
-                <AvatarImage src="/placeholder-avatar.jpg" />
+                <AvatarImage src="/placeholder-avatar.svg" />
                 <AvatarFallback>JD</AvatarFallback>
               </Avatar>
               <div className="flex-1 min-w-0">

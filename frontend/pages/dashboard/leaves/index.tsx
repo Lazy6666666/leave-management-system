@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/ui/card'
 import { Button } from '@/ui/button'
 import { Badge } from '@/ui/badge'
@@ -49,6 +50,24 @@ const formatDate = (dateString: string) => {
 }
 
 export default function LeavesPage() {
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [selectedLeaveId, setSelectedLeaveId] = useState<string | null>(null)
+
+  const handleDeleteClick = (leaveId: string) => {
+    setSelectedLeaveId(leaveId)
+    setDeleteDialogOpen(true)
+  }
+
+  const handleDeleteConfirm = () => {
+    if (selectedLeaveId) {
+      // In a real app, this would call an API to delete the leave request
+      console.log('Deleting leave request:', selectedLeaveId)
+      // Remove from local state or refetch data
+      setDeleteDialogOpen(false)
+      setSelectedLeaveId(null)
+      alert('Leave request deleted successfully!')
+    }
+  }
   const [isDialogOpen, setIsDialogOpen] = React.useState(false)
 
   // Fetch leave types from API
@@ -142,7 +161,7 @@ export default function LeavesPage() {
       <div className="space-y-6 md:space-y-8 page-transition">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div className="space-y-1">
-            <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Leave Requests</h1>
+            <h1 className="text-2xl md:text-3xl font-bold tracking-tight" suppressHydrationWarning>Leave Requests</h1>
             <p className="text-sm md:text-base text-muted-foreground">
               Manage your leave requests and view your balance
             </p>
@@ -158,7 +177,7 @@ export default function LeavesPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="space-y-1">
-          <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Leave Requests</h1>
+          <h1 className="text-2xl md:text-3xl font-bold tracking-tight" suppressHydrationWarning>Leave Requests</h1>
           <p className="text-sm md:text-base text-muted-foreground">
             Manage your leave requests and view your balance
           </p>
@@ -288,8 +307,8 @@ export default function LeavesPage() {
                                 >
                                   Edit
                                 </Button>
-                                <Button variant="outline" size="sm" className="text-destructive hover:text-destructive">
-                                  Cancel
+                                <Button variant="outline" size="sm" className="text-destructive hover:text-destructive" onClick={() => handleDeleteClick(request.id)}>
+                                  Delete
                                 </Button>
                               </>
                             )}
@@ -366,8 +385,8 @@ export default function LeavesPage() {
                           >
                             Edit
                           </Button>
-                          <Button variant="outline" size="sm" className="flex-1 text-destructive hover:text-destructive">
-                            Cancel
+                          <Button variant="outline" size="sm" className="flex-1 text-destructive hover:text-destructive" onClick={() => handleDeleteClick(request.id)}>
+                            Delete
                           </Button>
                         </div>
                       )}
@@ -379,6 +398,32 @@ export default function LeavesPage() {
           )}
         </CardContent>
       </Card>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Leave Request</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete this leave request? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-end space-x-2">
+            <Button
+              variant="outline"
+              onClick={() => setDeleteDialogOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleDeleteConfirm}
+            >
+              Delete
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

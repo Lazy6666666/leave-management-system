@@ -35,7 +35,7 @@ import {
 } from '@/ui/table'
 import { Users, UserCheck, UserCog, Clock, FileWarning, Bell, BarChart3, TrendingUp, AlertCircle, Download, Filter } from 'lucide-react'
 import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
-import Papa from 'papaparse'
+// import Papa from 'papaparse'
 
 const REPORT_TYPES = [
   { value: 'overview', label: 'Overview' },
@@ -115,7 +115,8 @@ export default function AdminReportsPage() {
         return
     }
 
-    const csv = Papa.unparse(csvData)
+    // const csv = Papa.unparse(csvData)
+    const csv = csvData.map(row => Object.values(row).join(',')).join('\n')
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
     const link = document.createElement('a')
     const url = URL.createObjectURL(blob)
@@ -249,9 +250,9 @@ export default function AdminReportsPage() {
                 <SelectTrigger id="report-type">
                   <SelectValue placeholder="Select report type" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="dark:bg-[#1E1E1E] text-white shadow-md border dark:border-[#2E2E2E] rounded-md">
                   {REPORT_TYPES.map((type) => (
-                    <SelectItem key={type.value} value={type.value}>
+                    <SelectItem key={type.value} value={type.value} className="px-3 py-2 cursor-pointer dark:hover:bg-[#2A2A2A] dark:focus:bg-[#2A2A2A] focus-visible:ring-2 focus-visible:ring-offset-2 ring-blue-400 focus-visible:ring-offset-[#1E1E1E]">
                       {type.label}
                     </SelectItem>
                   ))}

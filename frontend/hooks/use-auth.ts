@@ -18,11 +18,28 @@ export function useAuth() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    let mounted = true
+
     // Get initial session
     const getInitialSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession()
-      setUser(session?.user ?? null)
-      setLoading(false)
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession()
+        if (mounted) {
+          if (error) {
+            console.warn('Auth session error:', error.message)
+            setUser(null)
+          } else {
+            setUser(session?.user ?? null)
+          }
+          setLoading(false)
+        }
+      } catch (error) {
+        console.warn('Auth session error (network):', error)
+        if (mounted) {
+          setUser(null)
+          setLoading(false)
+        }
+      }
     }
 
     getInitialSession()
@@ -30,12 +47,17 @@ export function useAuth() {
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (_event: string, session: Session | null) => {
-        setUser(session?.user ?? null)
-        setLoading(false)
+        if (mounted) {
+          setUser(session?.user ?? null)
+          setLoading(false)
+        }
       }
     )
 
-    return () => subscription.unsubscribe()
+    return () => {
+      mounted = false
+      subscription.unsubscribe()
+    }
   }, [])
 
   return { user, loading }

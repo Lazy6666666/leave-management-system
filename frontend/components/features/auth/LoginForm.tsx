@@ -1,5 +1,6 @@
 'use client'
 
+import * as React from 'react'
 import { useState } from 'react'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
@@ -160,7 +161,6 @@ export function LoginForm({ redirectTo, onSuccess }: LoginFormProps) {
           <Button 
             type="submit" 
             className="w-full h-11 bg-blue-600 hover:bg-blue-700 text-white font-medium" 
-            loading={loginMutation.isPending}
             disabled={loginMutation.isPending}
           >
             {loginMutation.isPending ? 'Signing in...' : 'Sign in to LeaveFlow'}
@@ -171,7 +171,6 @@ export function LoginForm({ redirectTo, onSuccess }: LoginFormProps) {
             variant="outline"
             className="w-full h-11 border-slate-200 text-slate-700 hover:bg-slate-50"
             onClick={handleMagicLink}
-            loading={isSubmittingMagicLink}
             disabled={isSubmittingMagicLink}
           >
             {isSubmittingMagicLink ? 'Sending magic link...' : 'Send magic link instead'}

@@ -53,10 +53,6 @@ const nextConfig = {
             value: 'SAMEORIGIN'
           },
           {
-            key: 'X-Content-Type-Options',
-            value: 'nosniff'
-          },
-          {
             key: 'X-XSS-Protection',
             value: '1; mode=block'
           },
@@ -71,16 +67,20 @@ const nextConfig = {
         ],
       },
       {
-        source: '/static/:path*',
+        source: '/_next/static/:path*',
         headers: [
           {
             key: 'Cache-Control',
             value: 'public, max-age=31536000, immutable',
           },
+          {
+            key: 'Content-Type',
+            value: 'application/javascript; charset=utf-8',
+          },
         ],
       },
       {
-        source: '/_next/static/:path*',
+        source: '/static/:path*',
         headers: [
           {
             key: 'Cache-Control',

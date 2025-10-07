@@ -11,58 +11,58 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        border: 'hsl(var(--border))',
-        input: 'hsl(var(--input))',
-        ring: 'hsl(var(--ring))',
-        background: 'hsl(var(--background))',
-        foreground: 'hsl(var(--foreground))',
+        border: 'var(--border)',
+        input: 'var(--input)',
+        ring: 'var(--ring)',
+        background: 'var(--background)',
+        foreground: 'var(--foreground)',
         primary: {
-          DEFAULT: 'hsl(var(--primary))',
-          foreground: 'hsl(var(--primary-foreground))',
+          DEFAULT: 'var(--primary)',
+          foreground: 'var(--primary-foreground)',
         },
         secondary: {
-          DEFAULT: 'hsl(var(--secondary))',
-          foreground: 'hsl(var(--secondary-foreground))',
+          DEFAULT: 'var(--secondary)',
+          foreground: 'var(--secondary-foreground)',
         },
         destructive: {
-          DEFAULT: 'hsl(var(--destructive))',
-          foreground: 'hsl(var(--destructive-foreground))',
-          subtle: 'hsl(var(--destructive-subtle))',
-          strong: 'hsl(var(--destructive-strong))'
+          DEFAULT: 'var(--destructive)',
+          foreground: 'var(--destructive-foreground)',
+          subtle: 'var(--destructive-subtle)',
+          strong: 'var(--destructive-strong)'
         },
         warning: {
-          DEFAULT: 'hsl(var(--warning))',
-          foreground: 'hsl(var(--warning-foreground))',
-          subtle: 'hsl(var(--warning-subtle))',
-          strong: 'hsl(var(--warning-strong))'
+          DEFAULT: 'var(--warning)',
+          foreground: 'var(--warning-foreground)',
+          subtle: 'var(--warning-subtle)',
+          strong: 'var(--warning-strong)'
         },
         success: {
-          DEFAULT: 'hsl(var(--success))',
-          foreground: 'hsl(var(--success-foreground))',
-          subtle: 'hsl(var(--success-subtle))',
-          strong: 'hsl(var(--success-strong))'
+          DEFAULT: 'var(--success)',
+          foreground: 'var(--success-foreground)',
+          subtle: 'var(--success-subtle)',
+          strong: 'var(--success-strong)'
         },
         info: {
-          DEFAULT: 'hsl(var(--info))',
-          foreground: 'hsl(var(--info-foreground))',
-          subtle: 'hsl(var(--info-subtle))',
-          strong: 'hsl(var(--info-strong))'
+          DEFAULT: 'var(--info)',
+          foreground: 'var(--info-foreground)',
+          subtle: 'var(--info-subtle)',
+          strong: 'var(--info-strong)'
         },
         muted: {
-          DEFAULT: 'hsl(var(--muted))',
-          foreground: 'hsl(var(--muted-foreground))',
+          DEFAULT: 'var(--muted)',
+          foreground: 'var(--muted-foreground)',
         },
         accent: {
-          DEFAULT: 'hsl(var(--accent))',
-          foreground: 'hsl(var(--accent-foreground))',
+          DEFAULT: 'var(--accent)',
+          foreground: 'var(--accent-foreground)',
         },
         popover: {
-          DEFAULT: 'hsl(var(--popover))',
-          foreground: 'hsl(var(--popover-foreground))',
+          DEFAULT: 'var(--popover)',
+          foreground: 'var(--popover-foreground)',
         },
         card: {
-          DEFAULT: 'hsl(var(--card))',
-          foreground: 'hsl(var(--card-foreground))',
+          DEFAULT: 'var(--card)',
+          foreground: 'var(--card-foreground)',
         },
       },
       spacing: {
