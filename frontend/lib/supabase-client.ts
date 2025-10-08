@@ -18,7 +18,12 @@ export function getBrowserClient() {
       return null as unknown as ReturnType<typeof createBrowserClient>;
     }
 
-    browserClient = createBrowserClient(url, key);
+    browserClient = createBrowserClient(url, key, {
+      cookieOptions: {
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'Lax',
+      },
+    });
   }
 
   return browserClient;

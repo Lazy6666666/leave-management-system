@@ -1,114 +1,106 @@
-# Gemini Project Context: Leave Management System
+
+# Gemini Project: Leave Management System
 
 ## Project Overview
 
-This is a comprehensive, production-ready leave management system. It's a full-stack application built with a modern tech stack designed for scalability, security, and a great user experience.
+This repository contains a comprehensive Leave Management System built with a modern, full-stack technology stack. The project is structured as a monorepo with separate `frontend` and `backend` workspaces.
 
-- **Frontend:** Next.js 14 (App Router), React 18, TypeScript
-- **Backend:** Supabase (PostgreSQL, Auth, Storage, Edge Functions)
-- **UI:** Tailwind CSS with shadcn/ui components
-- **State Management:** React Query for server state
-- **Forms:** React Hook Form with Zod for validation
+**Frontend:**
 
-The goal is to provide a robust platform for employees, managers, and administrators to manage leave requests, company documents, and team schedules efficiently.
+The frontend is a Next.js application written in TypeScript. It features a rich user interface built with a combination of technologies:
 
-## Key Features
+*   **Framework:** Next.js (Pages Router)
+*   **Styling:** Tailwind CSS with a detailed design system.
+*   **UI Components:** A custom component library built on Radix UI primitives, including components for forms, data display, feedback, and more. It also uses shadcn/ui components.
+*   **State Management:** TanStack Query for server state and React Hooks for local state.
+*   **Forms:** React Hook Form with Zod for validation.
+*   **Testing:** A comprehensive testing suite using Vitest for unit/integration tests and Playwright for end-to-end and visual regression testing.
 
-- **Authentication & Authorization:** Secure login with email/password and role-based access control (Employee, Manager, Admin, HR) using Supabase Auth. Middleware protects routes based on user roles.
-- **Leave Management:** Users can submit, track, and manage leave requests. An approval workflow allows managers to approve or reject requests with comments. Leave balances are automatically calculated.
-- **Document Management:** Securely upload, manage, and track expiry for company-wide documents using Supabase Storage.
-- **Team Calendar:** A visual calendar to see team availability and scheduled leaves.
-- **Admin Dashboard:** A central place for administrators to manage users, leave types, and view system-wide reports.
-- **Real-time Notifications:** Utilizes Supabase's real-time capabilities to provide instant updates for events like leave status changes.
+**Backend:**
 
-## Architecture & Project Structure
+The backend is powered by Supabase, providing a robust set of services:
 
-The project is a monorepo with a `frontend` and `backend` directory.
-
-- **`frontend/`**: A Next.js application that serves as the user interface.
-  - **`src/app/`**: Contains all the pages and API routes.
-  - **`src/components/`**: Reusable React components, with `shadcn/ui` components in `src/components/ui/`.
-  - **`src/lib/`**: Core logic, utility functions, and Supabase client configurations.
-    - **`supabase-client.ts`**: Client-side Supabase instance.
-    - **`supabase-server.ts`**: Server-side Supabase client for use in API routes and Server Components.
-    - **`auth.ts`**: Authentication-related utility functions.
-  - **`middleware.ts`**: Handles route protection and redirects based on authentication status and user roles.
-
-- **`backend/`**: A Node.js project that contains Supabase edge functions and database migrations.
-  - **`supabase/functions/`**: Contains the Supabase Edge Functions.
-  - **`supabase/migrations/`**: Contains the database schema migrations.
+*   **Database:** PostgreSQL for data storage.
+*   **Authentication:** Supabase Auth for user management.
+*   **APIs:** Supabase Functions for serverless backend logic.
+*   **Storage:** Supabase Storage for file management.
 
 ## Building and Running
 
 ### Prerequisites
 
-- Node.js 18+
-- A Supabase project
-- Supabase CLI
+*   Node.js (>=18.0.0)
+*   npm (>=9.0.0)
+*   Supabase CLI
 
-### Setup & Development
+### Installation
 
-**Frontend:**
+Install all dependencies for the frontend and backend workspaces:
 
-1.  Navigate to the `frontend` directory:
-    ```bash
-    cd frontend
-    ```
-2.  Install Dependencies:
-    ```bash
-    npm install
-    ```
-3.  Configure Environment:
-    Copy `.env.example` to `.env.local` and add your Supabase project URL and keys.
-    ```bash
-    cp .env.example .env.local
-    ```
-4.  Run Development Server:
-    ```bash
-    npm run dev
-    ```
+```bash
+npm run install:all
+```
 
-**Backend:**
+### Development
 
-1.  Navigate to the `backend` directory:
-    ```bash
-    cd backend
-    ```
-2.  Install Dependencies:
-    ```bash
-    npm install
-    ```
-3.  Start Supabase local development environment:
-    ```bash
-    npx supabase start
-    ```
-4.  Deploy Supabase functions:
-    ```bash
-    npm run deploy
-    ```
+Run the frontend and backend development servers concurrently:
 
-### Key Scripts
+*   **Frontend:** `npm run dev:frontend` (or `npm run dev`)
+*   **Backend:** `npm run dev:backend`
 
-**Frontend:**
+### Building for Production
 
-- `npm run dev`: Start the development server.
-- `npm run build`: Create a production build.
-- `npm run start`: Start the production server.
-- `npm run lint`: Run ESLint to check for code quality issues.
-- `npm run test`: Run tests using Vitest.
+Build the frontend application for production:
 
-**Backend:**
+```bash
+npm run build
+```
 
-- `npm run dev`: Start the Supabase functions development server.
-- `npm run deploy`: Deploy Supabase functions.
-- `npm run db:generate`: Generate TypeScript types from the database.
-- `npm run db:reset`: Reset the local database.
-- `npm run db:push`: Push database changes to Supabase.
+### Testing
+
+Run the test suites for the frontend:
+
+*   **All tests:** `npm test`
+*   **Unit/Integration tests (UI):** `npm run test:ui`
+*   **End-to-end tests:** `npm run test:e2e`
+*   **Visual regression tests:** `npm run test:visual`
+
+### Database Management (Backend)
+
+*   **Generate types:** `npm run db:generate`
+*   **Push changes:** `npm run db:push`
+*   **Reset database:** `npm run db:reset`
+*   **Seed users:** `npm run db:seed-users`
 
 ## Development Conventions
 
-- **Type-Safety:** The project uses TypeScript in strict mode. Types for the database are generated from the Supabase schema.
-- **Code Style:** Code is formatted with Prettier and linted with ESLint.
-- **UI Components:** The `shadcn/ui` library is used for building the user interface. New components should follow this style.
-- **API Routes:** Backend logic is handled via API routes within the `frontend/src/app/api` directory and Supabase Edge Functions in the `backend/supabase/functions` directory.
-- **Testing:** Integration and unit tests are written with Vitest and Playwright is used for end-to-end tests.
+### Design System
+
+The frontend follows a strict design system documented in `frontend/docs/DESIGN_SYSTEM.md`. Key aspects include:
+
+*   **8-Point Grid:** All spacing and sizing is based on an 8-point grid.
+*   **Semantic Colors:** A semantic color system is used for light and dark modes, with specific colors for success, destructive, warning, and info states.
+*   **Typography:** A modular type scale is defined with specific utility classes for headings, body text, and labels.
+
+### Component Library
+
+A comprehensive component library is available in `frontend/components`. The documentation for each component, including variants, sizes, and usage examples, can be found in `frontend/docs/COMPONENT_LIBRARY.md`.
+
+### Coding Style
+
+*   **TypeScript:** The project uses TypeScript with strict mode enabled.
+*   **Linting:** ESLint and Prettier are used for code linting and formatting. Use `npm run lint` and `npm run format` to check and fix code.
+*   **Path Aliases:** Path aliases are configured in `tsconfig.json` for easier imports (e.g., `@/components/*`).
+
+### Testing Practices
+
+*   **Unit & Integration Tests:** Write Vitest tests for individual components and features.
+*   **End-to-End Tests:** Use Playwright to test user flows and interactions.
+*   **Visual Regression Tests:** Use Playwright to catch unintended visual changes.
+*   **Accessibility:** Write Playwright tests to ensure WCAG 2.1 AA compliance.
+
+### Committing and Deploying
+
+*   **Pre-commit Hooks:** A pre-commit hook is set up with `lint-staged` to run linting and formatting before committing.
+*   **CI/CD:** The `.github/workflows` directory contains CI/CD pipelines for continuous integration and deployment.
+*   **Deployment:** The frontend is deployed to Vercel, and the backend is deployed to Supabase.

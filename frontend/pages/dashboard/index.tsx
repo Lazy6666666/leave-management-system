@@ -1,6 +1,7 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
+import { subscribeToLeaveRequests, unsubscribeFromChannel } from '../../lib/realtime'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/ui/card'
 import { Button } from '@/ui/button'
 import { Skeleton } from '@/ui/skeleton'
@@ -20,7 +21,7 @@ import { useLeaveTypes } from '@/hooks/use-leave-types'
 import { useToast } from '@/hooks/use-toast'
 import { getBrowserClient } from '@/lib/supabase-client'
 import { uploadDocumentWithMetadata } from '@/lib/storage-utils'
-import type { LeaveType } from '@/types'
+import { useUserProfile } from '@/hooks/use-user-profile'
 import {
   Calendar,
   Clock,
@@ -41,12 +42,34 @@ export default function DashboardPage() {
 
   const { data: leaveTypes, isLoading: isLoadingLeaveTypes } = useLeaveTypes()
 
+  const supabase = getBrowserClient();
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      if (supabase) {
+        const { data: { user } } = await supabase.auth.getUser();
+        setCurrentUserId(user?.id || null);
+      }
+    };
+    fetchUser();
+  }, [supabase]);
+
+  useEffect(() => {
+    if (currentUserId) {
+      const channel = subscribeToLeaveRequests(currentUserId);
+      return () => {
+        unsubscribeFromChannel(channel);
+      };
+    }
+  }, [currentUserId]);
+
   const user = {
     name: 'User',
     role: 'Employee',
     department: 'Department',
     avatar: 'U'
-  }
+  };
 
   const stats = {
     pendingRequests: 0,

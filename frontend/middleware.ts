@@ -48,8 +48,26 @@ export async function middleware(request: NextRequest) {
       data: { user }, 
     } = await supabase.auth.getUser();
 
+    let userRole: string | null = null;
+    if (user) {
+      const { data: profile, error } = await supabase
+        .from('profiles') // <--- HERE!
+        .select('role')
+        .eq('id', user.id)
+        .single()
+
+      if (profileError) {
+        console.error('Error fetching user profile in middleware:', profileError);
+      } else if (profile) {
+        userRole = profile.role;
+      }
+    }
+
     const protectedPaths = ['/dashboard', '/profile', '/approvals', '/documents', '/team'];
+    const adminProtectedPaths = ['/dashboard/admin/documents'];
+
     const isProtectedRoute = protectedPaths.some((path) => request.nextUrl.pathname.startsWith(path));
+    const isAdminProtectedRoute = adminProtectedPaths.some((path) => request.nextUrl.pathname.startsWith(path));
 
     // if user is not signed in and the current path is protected, redirect the user to /login
     if (!user && isProtectedRoute) {
@@ -58,6 +76,11 @@ export async function middleware(request: NextRequest) {
 
     // if user is signed in and the current path is /login or /register, redirect the user to /dashboard
     if (user && (request.nextUrl.pathname === '/login' || request.nextUrl.pathname === '/register')) {
+      return NextResponse.redirect(new URL('/dashboard', request.url));
+    }
+
+    // If accessing an admin-protected path without admin/hr role, redirect to dashboard
+    if (isAdminProtectedRoute && (!user || (userRole !== 'admin' && userRole !== 'hr'))) {
       return NextResponse.redirect(new URL('/dashboard', request.url));
     }
 

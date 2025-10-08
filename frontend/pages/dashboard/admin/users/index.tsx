@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useAdminUsers, useUpdateUserRole, useDeactivateUser } from '@/hooks/use-admin'
+import { useAdminUsers, useUpdateUserRole, useDeactivateUser, useAddUser } from '@/hooks/use-admin'
 import { PageHeader } from '@/components/ui/page-header'
 import { EmptyState } from '@/components/ui/empty-state'
 import { Button } from '@/ui/button'
@@ -37,10 +37,40 @@ export default function AdminUsersPage() {
   const [roleFilter, setRoleFilter] = useState<string | undefined>(undefined)
   const [deactivateDialogOpen, setDeactivateDialogOpen] = useState(false)
   const [selectedUser, setSelectedUser] = useState<{ id: string; name: string } | null>(null)
+  const [addDialogOpen, setAddDialogOpen] = useState(false)
+  const [addUserRole, setAddUserRole] = useState<'employee' | 'manager' | 'admin' | 'hr'>('employee')
 
   const { data, isLoading, isError, error } = useAdminUsers({ search, role: roleFilter })
   const updateRole = useUpdateUserRole()
   const deactivateUser = useDeactivateUser()
+  const addUserMutation = useAddUser()
+
+  const handleAddUserSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    const form = event.target as HTMLFormElement;
+    const formData = new FormData(form);
+    const email = formData.get('email') as string;
+    const password = formData.get('password') as string;
+    const full_name = formData.get('full_name') as string;
+    const department = formData.get('department') as string;
+    const is_active = formData.get('is_active') === 'on';
+
+    try {
+      await addUserMutation.mutateAsync({
+        email,
+        password,
+        full_name,
+        role: addUserRole,
+        department: department || undefined,
+        is_active,
+      });
+      setAddDialogOpen(false);
+      form.reset();
+      setAddUserRole('employee');
+    } catch (err) {
+      console.error('Failed to add user:', err);
+    }
+  }
 
   const handleRoleUpdate = async (userId: string, newRole: 'employee' | 'manager' | 'admin' | 'hr') => {
     try {
@@ -123,7 +153,7 @@ export default function AdminUsersPage() {
           description="View and manage user roles and access"
         />
         <Button
-          onClick={() => window.location.href = '/dashboard/admin/users/create'}
+          onClick={() => setAddDialogOpen(true)}
           className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-primary-foreground"
         >
           <Users className="mr-2 h-4 w-4" />
@@ -172,14 +202,14 @@ export default function AdminUsersPage() {
             </TableHeader>
             <TableBody>
               {data.users.map((user) => (
-                <TableRow key={user.id} className="hover:bg-muted/50 transition-colors border-b">
-                  <TableCell className="font-medium">{user.full_name}</TableCell>
+                <TableRow key={user.supabase_id} className="hover:bg-muted/50 transition-colors border-b">
+                  <TableCell className="font-medium">{user.name}</TableCell>
                   <TableCell className="text-muted-foreground">{user.email}</TableCell>
                   <TableCell className="text-muted-foreground">{user.department ?? '-'}</TableCell>
                   <TableCell>
                     <Select
                       value={user.role}
-                      onValueChange={(value) => handleRoleUpdate(user.id, value as 'employee' | 'manager' | 'admin' | 'hr')}
+                      onValueChange={(value) => handleRoleUpdate(user.supabase_id, value as 'employee' | 'manager' | 'admin' | 'hr')}
                       disabled={updateRole.isPending}
                     >
                       <SelectTrigger className="w-32 h-9 bg-background border">
@@ -198,12 +228,28 @@ export default function AdminUsersPage() {
                       {user.is_active ? 'Active' : 'Inactive'}
                     </Badge>
                   </TableCell>
-                  <TableCell className="text-right">
+                  <TableCell className="text-right flex items-center justify-end gap-2">
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => console.log('Edit user:', user.supabase_id)}
+                      className="hover:bg-blue-500/10 hover:text-blue-500 transition-colors"
+                    >
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => console.log('Delete user:', user.supabase_id)}
+                      className="hover:bg-red-500/10 hover:text-red-500 transition-colors"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
                     {user.is_active && (
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() => openDeactivateDialog(user.id, user.full_name)}
+                        onClick={() => openDeactivateDialog(user.supabase_id, user.name)}
                         disabled={deactivateUser.isPending}
                         className="hover:bg-destructive/10 hover:text-destructive hover:border-destructive/50 transition-colors bg-background"
                       >
@@ -272,6 +318,59 @@ export default function AdminUsersPage() {
               Deactivate User
             </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Add User Dialog */}
+      <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Add New User</DialogTitle>
+            <DialogDescription>
+              Register a new user and assign their initial role and department.
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleAddUserSubmit} className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="full_name" className="text-right">Full Name</Label>
+              <Input id="full_name" name="full_name" className="col-span-3" required />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="email" className="text-right">Email</Label>
+              <Input id="email" name="email" type="email" className="col-span-3" required />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="password" className="text-right">Password</Label>
+              <Input id="password" name="password" type="password" className="col-span-3" required />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="department" className="text-right">Department</Label>
+              <Input id="department" name="department" className="col-span-3" />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="role" className="text-right">Role</Label>
+              <Select name="role" defaultValue="employee" onValueChange={(value) => setAddUserRole(value as 'employee' | 'manager' | 'admin' | 'hr')}>
+                <SelectTrigger className="col-span-3">
+                  <SelectValue placeholder="Select a role" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="employee">Employee</SelectItem>
+                  <SelectItem value="manager">Manager</SelectItem>
+                  <SelectItem value="hr">HR</SelectItem>
+                  <SelectItem value="admin">Admin</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="is_active" className="text-right">Active</Label>
+              <input id="is_active" name="is_active" type="checkbox" defaultChecked className="col-span-3 ml-3" />
+            </div>
+            <DialogFooter>
+              <Button type="submit" disabled={addUserMutation.isPending}>
+                {addUserMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />} Add User
+              </Button>
+            </DialogFooter>
+          </form>
         </DialogContent>
       </Dialog>
     </div>
