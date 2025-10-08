@@ -24,6 +24,7 @@ import {
   type NavItem,
 } from '@/lib/navigation-config'
 import { useAuth, useLogout } from '@/hooks/use-auth'
+import { useUserProfile } from '@/hooks/use-user-profile'
 
 export default function DashboardLayout({
   children,
@@ -35,6 +36,7 @@ export default function DashboardLayout({
   const router = useRouter()
   const pathname = router.pathname
   const { user } = useAuth()
+  const { data: userProfile } = useUserProfile(user?.id)
   const logout = useLogout()
 
   // Check if user is on admin page
@@ -93,7 +95,7 @@ export default function DashboardLayout({
                             className="flex items-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-md"
                           >
                             <Calendar className="h-6 w-6 text-primary flex-shrink-0" />
-                            <h1 suppressHydrationWarning className={`text-2xl font-bold transition-all duration-300 ${sidebarCollapsed ? 'opacity-0 w-0' : 'opacity-100'} text-primary`}>Leave Portal</h1>
+                            <h1 suppressHydrationWarning className={`text-xl font-bold transition-all duration-300 ${sidebarCollapsed ? 'opacity-0 w-0' : 'opacity-100'}`}>Leave Portal</h1>
                           </Link>          </div>
 
           {/* Navigation - Using 8-point spacing system */}
@@ -120,26 +122,26 @@ export default function DashboardLayout({
 
           {/* User section - Using 16px padding */}
           <div className="border-t p-4">
-            <div className={`flex items-center gap-3 ${sidebarCollapsed ? 'justify-center' : ''}`}>
-              <Avatar className="h-8 w-8 flex-shrink-0 transition-transform duration-200 hover:scale-110">
+            <a href="/dashboard/profile" className={`flex items-center gap-3 group ${sidebarCollapsed ? 'justify-center' : ''}`}>
+              <Avatar className="h-8 w-8 flex-shrink-0 transition-transform duration-200 group-hover:scale-110">
                 <AvatarImage src="/placeholder-avatar.svg" />
                 <AvatarFallback>U</AvatarFallback>
               </Avatar>
               <div className={`flex-1 min-w-0 transition-all duration-300 ${sidebarCollapsed ? 'opacity-0 w-0 overflow-hidden' : 'opacity-100'}`}>
-                <p className="text-sm font-medium truncate">{user?.user_metadata?.full_name || user?.email || 'User'}</p>
-                <p className="text-xs text-muted-foreground truncate">{user?.user_metadata?.department || 'Employee'}</p>
+                <p className="text-sm font-medium truncate">{userProfile?.full_name || user?.email || 'User'}</p>
+                <p className="text-xs text-muted-foreground truncate">{userProfile?.role || 'Employee'}</p>
               </div>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={handleSignOut}
-                title="Sign Out"
-                aria-label="Sign out"
-                className={`flex-shrink-0 transition-all duration-200 hover:bg-destructive/10 hover:text-destructive active:scale-95 ${sidebarCollapsed ? 'opacity-0 w-0 overflow-hidden' : 'opacity-100'}`}
-              >
-                <LogOut className="h-4 w-4" />
-              </Button>
-            </div>
+            </a>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleSignOut}
+              title="Sign Out"
+              aria-label="Sign out"
+              className={`flex-shrink-0 transition-all duration-200 hover:bg-destructive/10 hover:text-destructive active:scale-95 ${sidebarCollapsed ? 'opacity-0 w-0 overflow-hidden' : 'opacity-100'}`}
+            >
+              <LogOut className="h-4 w-4" />
+            </Button>
           </div>
         </div>
       </div>
@@ -188,26 +190,28 @@ export default function DashboardLayout({
 
             {/* User section */}
             <div className="border-t p-4">
-              <div className="flex items-center gap-3">
-                <Avatar className="h-8 w-8 flex-shrink-0">
-                  <AvatarImage src="/placeholder-avatar.svg" />
-                  <AvatarFallback>U</AvatarFallback>
-                </Avatar>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium truncate">{user?.user_metadata?.full_name || user?.email || 'User'}</p>
-                  <p className="text-xs text-muted-foreground truncate">{user?.user_metadata?.department || 'Employee'}</p>
+              <a href="/dashboard/profile" className="flex items-center gap-3 group">
+                <div className="flex items-center gap-3">
+                  <Avatar className="h-8 w-8 flex-shrink-0">
+                    <AvatarImage src="/placeholder-avatar.svg" />
+                    <AvatarFallback>U</AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium truncate">{userProfile?.full_name || user?.email || 'User'}</p>
+                    <p className="text-xs text-muted-foreground truncate">{userProfile?.role || 'Employee'}</p>
+                  </div>
                 </div>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={handleSignOut}
-                  title="Sign Out"
-                  aria-label="Sign out"
-                  className="flex-shrink-0"
-                >
-                  <LogOut className="h-4 w-4" />
-                </Button>
-              </div>
+              </a>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={handleSignOut}
+                title="Sign Out"
+                aria-label="Sign out"
+                className="flex-shrink-0"
+              >
+                <LogOut className="h-4 w-4" />
+              </Button>
             </div>
           </div>
         </SheetContent>

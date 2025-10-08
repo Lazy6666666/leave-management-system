@@ -20,7 +20,7 @@ async function fetcher<T>(input: RequestInfo | URL, init?: RequestInit): Promise
 }
 
 type AdminUsersResponse = {
-  users: Array<{ id: string; full_name: string; email: string; role: string; department?: string | null; is_active: boolean }>
+  users: Array<{ id: string; supabase_id: string; name: string; email: string; role: string; department?: string | null; is_active: boolean }>
   total: number
   hasMore: boolean
 }
@@ -67,6 +67,32 @@ export function useDeactivateUser() {
       queryClient.invalidateQueries({ queryKey: ['admin-reports'] })
     },
   })
+}
+
+export type CreateUserPayload = {
+  email: string;
+  password?: string;
+  full_name: string;
+  role: 'employee' | 'manager' | 'admin' | 'hr';
+  department?: string;
+  is_active: boolean;
+};
+
+export function useAddUser() {
+  const queryClient = useQueryClient();
+
+  return useMutation<{ success: boolean; user_id: string }, Error, CreateUserPayload>({
+    mutationFn: (payload) =>
+      fetcher('/api/admin/users/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-users'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-reports'] });
+    },
+  });
 }
 
 export function useLeaveTypes(options?: { includeInactive?: boolean }) {

@@ -1,0 +1,128 @@
+{
+  "files": [
+    {
+      "path": "frontend/package.json",
+      "language": "JSON",
+      "size": 5297,
+      "lastModified": "2025-01-05T22:15:18.000Z",
+      "testPresence": false,
+      "importGraph": [],
+      "notes": ["Main frontend package configuration"],
+      "anyUsage": false,
+      "deprecatedAPIs": [],
+      "duplicateCode": false
+    },
+    {
+      "path": "backend/package.json",
+      "language": "JSON",
+      "size": 2456,
+      "lastModified": "2025-01-05T22:15:18.000Z",
+      "testPresence": false,
+      "importGraph": [],
+      "notes": ["Backend package configuration"],
+      "anyUsage": false,
+      "deprecatedAPIs": [],
+      "duplicateCode": false
+    },
+    {
+      "path": "frontend/tsconfig.json",
+      "language": "JSON",
+      "size": 1298,
+      "lastModified": "2025-01-05T22:15:18.000Z",
+      "testPresence": false,
+      "importGraph": [],
+      "notes": ["TypeScript configuration - needs strict mode enabled"],
+      "anyUsage": false,
+      "deprecatedAPIs": [],
+      "duplicateCode": false
+    },
+    {
+      "path": "frontend/components/features/TeamCalendar.tsx",
+      "language": "TypeScript",
+      "size": 8307,
+      "lastModified": "2025-01-05T22:15:18.000Z",
+      "testPresence": false,
+      "importGraph": ["@/ui/calendar", "@/ui/card"],
+      "notes": ["Complete implementation following TASK.md requirements"],
+      "anyUsage": false,
+      "deprecatedAPIs": [],
+      "duplicateCode": false
+    },
+    {
+      "path": "frontend/components/features/team-calendar.tsx",
+      "language": "TypeScript",
+      "size": 3100,
+      "lastModified": "2025-01-05T22:15:18.000Z",
+      "testPresence": false,
+      "importGraph": ["@/ui/calendar", "@/ui/card", "@/hooks/use-team-calendar"],
+      "notes": ["Alternative implementation using data fetching"],
+      "anyUsage": true,
+      "deprecatedAPIs": [],
+      "duplicateCode": true
+    },
+    {
+      "path": "frontend/ui/calendar.tsx",
+      "language": "TypeScript",
+      "size": 7544,
+      "lastModified": "2025-01-05T22:15:18.000Z",
+      "testPresence": false,
+      "importGraph": ["react-day-picker", "@/ui/button"],
+      "notes": ["shadcn/ui calendar component"],
+      "anyUsage": false,
+      "deprecatedAPIs": [],
+      "duplicateCode": false
+    },
+    {
+      "path": "frontend/hooks/use-team-calendar.ts",
+      "language": "TypeScript",
+      "size": 3285,
+      "lastModified": "2025-01-05T22:15:18.000Z",
+      "testPresence": false,
+      "importGraph": ["@tanstack/react-query", "@/lib/supabase-client"],
+      "notes": ["Hook for fetching team calendar data"],
+      "anyUsage": false,
+      "deprecatedAPIs": [],
+      "duplicateCode": false
+    },
+    {
+      "path": "docs/TASK.md",
+      "language": "Markdown",
+      "size": 7192,
+      "lastModified": "2025-01-05T22:15:18.000Z",
+      "testPresence": false,
+      "importGraph": [],
+      "notes": ["Original task requirements - completed"],
+      "anyUsage": false,
+      "deprecatedAPIs": [],
+      "duplicateCode": false
+    },
+    {
+      "path": "docs/PLAN.md",
+      "language": "Markdown",
+      "size": 9816,
+      "lastModified": "2025-01-05T22:15:18.000Z",
+      "testPresence": false,
+      "importGraph": [],
+      "notes": ["Comprehensive refactoring plan"],
+      "anyUsage": false,
+      "deprecatedAPIs": [],
+      "duplicateCode": false
+    }
+  ],
+  "summary": {
+    "totalFiles": 9,
+    "filesWithAny": 1,
+    "filesWithTests": 0,
+    "languages": {
+      "JSON": 3,
+      "TypeScript": 4,
+      "Markdown": 2
+    },
+    "outdatedDependencies": [
+      "Potential outdated React Query usage",
+      "Need to check for latest shadcn/ui versions"
+    ],
+    "accessibilityIssues": 0,
+    "totalSize": 45698
+  }
+}

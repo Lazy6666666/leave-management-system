@@ -1,0 +1,1 @@
+This project is a comprehensive, production-ready leave management system. Its purpose is to provide a robust platform for employees, managers, and administrators to efficiently manage leave requests, company documents, and team schedules.

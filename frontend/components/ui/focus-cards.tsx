@@ -2,41 +2,47 @@
 
 import React, { useState } from "react";
 import { cn } from "@/lib/utils";
-import { CardProps } from "@/ui/card";
+
+export interface CardProps {
+  title: string;
+  src: string;
+  description?: string;
+  className?: string;
+}
 
 export const Card = React.memo(
   ({
-    card,
-    index,
-    hovered,
-    setHovered,
-  }: {
-    card: any;
-    index: number;
-    hovered: number | null;
-    setHovered: React.Dispatch<React.SetStateAction<number | null>>;
+    title,
+    src,
+    description,
+    className,
+    onMouseEnter,
+    onMouseLeave,
+  }: CardProps & {
+    onMouseEnter?: () => void;
+    onMouseLeave?: () => void;
   }) => (
     <div
-      onMouseEnter={() => setHovered(index)}
-      onMouseLeave={() => setHovered(null)}
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
       className={cn(
-        "rounded-lg relative bg-gray-100 dark:bg-neutral-900 overflow-hidden h-60 md:h-96 w-full transition-all duration-300 ease-out",
-        hovered !== null && hovered !== index && "blur-sm scale-[0.98]"
+        "relative h-60 w-full overflow-hidden rounded-lg bg-gray-100 transition-all duration-300 ease-out dark:bg-neutral-900 md:h-96",
+        className
       )}
     >
       <img
-        src={card.src}
-        alt={card.title}
-        className="object-cover absolute inset-0"
+        src={src}
+        alt={title}
+        className="absolute inset-0 h-full w-full object-cover"
       />
       <div
         className={cn(
-          "absolute inset-0 bg-black/50 flex items-end py-8 px-4 transition-opacity duration-300",
-          hovered === index ? "opacity-100" : "opacity-0"
+          "absolute inset-0 flex items-end bg-black/50 px-4 py-8 transition-opacity duration-300",
+          onMouseEnter ? "opacity-100" : "opacity-0"
         )}
       >
-        <div className="text-xl md:text-2xl font-medium bg-clip-text text-transparent bg-gradient-to-b from-neutral-50 to-neutral-200">
-          {card.title}
+        <div className="bg-gradient-to-b from-neutral-50 to-neutral-200 bg-clip-text text-xl font-medium text-transparent md:text-2xl">
+          {title}
         </div>
       </div>
     </div>
@@ -45,20 +51,37 @@ export const Card = React.memo(
 
 Card.displayName = "Card";
 
-type Card = {
-  title: string;
-  src: string;
-};
-
 export function FocusCards({
   cards = [],
   children,
   className,
-}: { cards?: CardProps[]; children: React.ReactNode; className?: string }) {
+}: {
+  cards?: CardProps[];
+  children: React.ReactNode;
+  className?: string;
+}) {
   const [hovered, setHovered] = useState<number | null>(null);
 
   return (
-    <div className={cn("grid grid-cols-1 md:grid-cols-3 gap-10 max-w-5xl mx-auto md:px-8 w-full", className)}>
+    <div
+      className={cn(
+        "mx-auto grid w-full max-w-5xl grid-cols-1 gap-10 md:grid-cols-3 md:px-8",
+        className
+      )}
+    >
+      {cards.map((card, index) => (
+        <Card
+          key={index}
+          {...card}
+          onMouseEnter={() => setHovered(index)}
+          onMouseLeave={() => setHovered(null)}
+          className={cn(
+            hovered !== null &&
+              hovered !== index &&
+              "scale-[0.98] blur-sm transition-all duration-300"
+          )}
+        />
+      ))}
       {children}
     </div>
   );

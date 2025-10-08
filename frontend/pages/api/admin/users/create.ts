@@ -1,127 +1,100 @@
-import { NextApiRequest, NextApiResponse } from 'next'
-import { createServerSupabaseClient } from '@supabase/auth-helpers-nextjs'
-import { createClient } from '@supabase/supabase-js'
+import type { NextApiRequest, NextApiResponse } from 'next';
+import { createClient as createServerClient } from '@/lib/supabase-server';
+import { createAdminClient } from '@/lib/supabase-admin';
+import { getUserProfile, isAdminOrHr } from '@/lib/permissions';
+import { createUserSchema } from '@/lib/schemas/admin';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
-    return res.status(405).json({ error: { message: 'Method not allowed' } })
+    return res.status(405).json({ error: { code: 'METHOD_NOT_ALLOWED', message: 'Method not allowed' } });
   }
 
   try {
-    // Create authenticated supabase client
-    const supabase = createServerSupabaseClient({ req, res })
-    
-    // Get the current user
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
-    
-    if (authError || !user) {
-      return res.status(401).json({ error: { message: 'Unauthorized' } })
+    const supabase = createServerClient(req, res);
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) {
+      return res.status(401).json({ error: { code: 'AUTH_UNAUTHORIZED', message: 'Unauthorized' } });
     }
 
-    // Get user profile to check permissions
-    const { data: profile, error: profileError } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', user.id)
-      .single()
+    const profile = await getUserProfile(supabase, user.id);
 
-    if (profileError || !profile) {
-      return res.status(403).json({ error: { message: 'Profile not found' } })
+    if (!profile || !isAdminOrHr(profile.role)) {
+      return res.status(403).json({ error: { code: 'INSUFFICIENT_PERMISSIONS', message: 'Access denied' } });
     }
 
-    // Check if user is admin or HR
-    if (profile.role !== 'admin' && profile.role !== 'hr') {
-      return res.status(403).json({ error: { message: 'Insufficient permissions' } })
+    const parsed = createUserSchema.safeParse(req.body);
+
+    if (!parsed.success) {
+      return res.status(400).json({ error: { code: 'VALIDATION_ERROR', message: parsed.error.flatten() } });
     }
 
-    const { email, fullName, department, role } = req.body
+    const { email, password, full_name, role, department, is_active } = parsed.data;
 
-    // Validate input
-    if (!email || !fullName || !department || !role) {
-      return res.status(400).json({ 
-        error: { message: 'Missing required fields: email, fullName, department, role' } 
-      })
-    }
+    const adminClient = createAdminClient();
 
-    // Validate role
-    const validRoles = ['employee', 'manager', 'hr']
-    if (profile.role === 'admin') {
-      validRoles.push('admin')
-    }
-    
-    if (!validRoles.includes(role)) {
-      return res.status(400).json({ error: { message: 'Invalid role' } })
-    }
-
-    // Create service role client for admin operations
-    const adminSupabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!,
-      {
-        auth: {
-          autoRefreshToken: false,
-          persistSession: false
-        }
-      }
-    )
-
-    // Create the user account
-    const { data: newUser, error: createError } = await adminSupabase.auth.admin.createUser({
+    // 1. Create user in Supabase Auth
+    const { data: authUser, error: authError } = await adminClient.auth.admin.createUser({
       email,
-      password: Math.random().toString(36).slice(-12), // Temporary password
-      email_confirm: true,
-      user_metadata: {
-        full_name: fullName,
-        department,
-        role
-      }
-    })
+      password,
+      email_confirm: true, // Automatically confirm email for admin-created users
+      user_metadata: { full_name, department, role, is_active }, // Store initial profile data in user_metadata
+    });
 
-    if (createError) {
-      return res.status(400).json({ error: { message: createError.message } })
+    if (authError) {
+      return res.status(400).json({ error: { code: 'AUTH_ERROR', message: authError.message } });
     }
 
-    // Update the profile with the correct role
-    const { error: profileUpdateError } = await adminSupabase
-      .from('profiles')
-      .update({
-        full_name: fullName,
-        department,
-        role
-      })
-      .eq('id', newUser.user.id)
-
-    if (profileUpdateError) {
-      console.error('Profile update error:', profileUpdateError)
-      // Don't fail the request, just log the error
+    if (!authUser.user) {
+      return res.status(500).json({ error: { code: 'USER_CREATION_FAILED', message: 'Failed to create auth user' } });
     }
 
-    // Send password reset email so user can set their own password
-    const { error: resetError } = await adminSupabase.auth.admin.generateLink({
-      type: 'recovery',
-      email,
-    })
+    // 2. Create profile in public.employees table
+    // Note: The handle_new_user trigger in 001_initial_schema.sql creates a profile in the 'profiles' table.
+    // However, we discovered the actual table is 'employees'.
+    // We need to ensure the 'employees' table is populated correctly.
+    // If the trigger is still creating in 'profiles', we might need to adjust the trigger or directly insert here.
+    // For now, assuming the trigger is either updated or we need to insert directly into 'employees'.
+    // Let's assume the trigger is not creating the 'employees' entry and we need to do it manually here.
+    // We need to get the next available ID for the 'employees' table if it's not UUID based.
+    // Re-checking the schema, 'employees.id' is bigint and default is nextval('employees_id_seq'::regclass).
+    // 'employees.supabase_id' is uuid and references auth.users.id.
+    // So, we should insert into employees using the authUser.user.id as supabase_id.
 
-    if (resetError) {
-      console.error('Password reset email error:', resetError)
-      // Don't fail the request, just log the error
+    const { error: profileInsertError } = await adminClient
+      .from('employees')
+      .insert({
+        supabase_id: authUser.user.id,
+        email: authUser.user.email,
+        name: full_name,
+        role,
+        department,
+        is_active,
+      });
+
+    if (profileInsertError) {
+      // If profile creation fails, attempt to delete the auth user to prevent orphaned records
+      await adminClient.auth.admin.deleteUser(authUser.user.id);
+      return res.status(500).json({ error: { code: 'PROFILE_CREATION_FAILED', message: profileInsertError.message } });
     }
 
-    return res.status(201).json({
-      message: 'User created successfully',
-      user: {
-        id: newUser.user.id,
-        email: newUser.user.email,
-        full_name: fullName,
-        department,
-        role
-      }
-    })
+    // 3. Log audit event
+    await adminClient.from('audit_logs').insert({
+      user_id: user.id,
+      table_name: 'employees',
+      record_id: authUser.user.id,
+      action: 'INSERT',
+      new_values: { email, full_name, role, department, is_active },
+    });
 
+    return res.status(200).json({ success: true, user_id: authUser.user.id });
   } catch (error) {
-    console.error('Create user error:', error)
-    return res.status(500).json({ 
-      error: { message: 'Internal server error' } 
-    })
+    console.error('Error creating user:', error);
+    return res.status(500).json({
+      error: {
+        code: 'INTERNAL_ERROR',
+        message: error instanceof Error ? error.message : 'Unexpected error',
+      },
+    });
   }
 }

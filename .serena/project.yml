@@ -1,0 +1,14 @@
+project_root: C:\Users\Twisted\Desktop\LEAVE
+language: typescript
+source_paths:
+  - frontend
+  - backend
+ignore_patterns:
+  - node_modules
+  - .git
+  - .next
+  - .vercel
+  - dist
+  - build
+  - .env
+  - .env.local

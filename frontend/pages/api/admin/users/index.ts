@@ -25,8 +25,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const offsetNum = Number(offset);
 
       let query = supabase
-        .from('profiles')
-        .select('*', { count: 'exact' })
+        .from('employees')
+        .select('id, supabase_id, name, email, role, department, is_active', { count: 'exact' })
         .order('created_at', { ascending: false })
         .range(offsetNum, offsetNum + limitNum - 1);
 
@@ -66,7 +66,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
 
       const { error } = await adminClient
-        .from('profiles')
+        .from('employees')
         .update({ role: new_role, updated_at: new Date().toISOString() })
         .eq('id', user_id);
 
@@ -76,7 +76,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       await adminClient.from('audit_logs').insert({
         user_id: user.id,
-        table_name: 'profiles',
+        table_name: 'employees',
         record_id: user_id,
         action: 'UPDATE',
         new_values: { role: new_role },
@@ -98,7 +98,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
 
       const { error } = await adminClient
-        .from('profiles')
+        .from('employees')
         .update({ is_active: false, updated_at: new Date().toISOString() })
         .eq('id', id);
 
@@ -108,7 +108,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       await adminClient.from('audit_logs').insert({
         user_id: user.id,
-        table_name: 'profiles',
+        table_name: 'employees',
         record_id: id,
         action: 'UPDATE',
         new_values: { is_active: false },
