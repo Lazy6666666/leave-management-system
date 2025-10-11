@@ -34,7 +34,7 @@
       "@/types/*": ["./types/*"],
       "@/app/*": ["./pages/*"],
       "@/hooks/*": ["./hooks/*"],
-      "@/ui/*": ["./components/ui/*"]
+      "@/ui/*": ["./ui/*"]
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
@@ -44,6 +44,9 @@
     "**/*.spec.tsx",
     "**/*.example.tsx",
     "e2e/**/*",
-    "playwright.config.ts"
+    "vitest.config.ts",
+    "playwright.config.ts",
+    "../backend/supabase/functions/**/*",
+    "../../jules-server/**/*"
   ]
 }

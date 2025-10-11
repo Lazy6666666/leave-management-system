@@ -21,7 +21,7 @@ export function getBrowserClient() {
     browserClient = createBrowserClient(url, key, {
       cookieOptions: {
         secure: process.env.NODE_ENV === 'production',
-        sameSite: 'Lax',
+        sameSite: 'lax',
       },
     });
   }

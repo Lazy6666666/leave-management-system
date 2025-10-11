@@ -1,0 +1,305 @@
+-- ============================================================================
+-- TEST SCRIPT: 20251009_test_org_statistics.sql
+-- Description: Comprehensive tests for org_statistics materialized view and triggers
+-- Created: 2025-10-09
+-- Phase: PHASE 2 - Admin Dashboard Live Intelligence & Data Visualization
+-- Usage: Run this script to verify the org statistics infrastructure
+-- ============================================================================
+
+-- ============================================================================
+-- TEST 1: Verify Materialized View Exists and Has Data
+-- ============================================================================
+DO $$
+DECLARE
+  v_view_exists BOOLEAN;
+  v_row_count INTEGER;
+  v_last_refreshed TIMESTAMPTZ;
+BEGIN
+  -- Check if materialized view exists
+  SELECT EXISTS (
+    SELECT 1 FROM pg_matviews
+    WHERE schemaname = 'public'
+    AND matviewname = 'org_statistics'
+  ) INTO v_view_exists;
+
+  IF NOT v_view_exists THEN
+    RAISE EXCEPTION 'TEST FAILED: Materialized view org_statistics does not exist';
+  ELSE
+    RAISE NOTICE 'TEST PASSED: Materialized view org_statistics exists';
+  END IF;
+
+  -- Check if view has data
+  SELECT COUNT(*) INTO v_row_count FROM org_statistics;
+
+  IF v_row_count = 0 THEN
+    RAISE EXCEPTION 'TEST FAILED: Materialized view org_statistics has no data';
+  ELSIF v_row_count > 1 THEN
+    RAISE WARNING 'TEST WARNING: Materialized view has % rows, expected 1', v_row_count;
+  ELSE
+    RAISE NOTICE 'TEST PASSED: Materialized view has exactly 1 row';
+  END IF;
+
+  -- Check last refresh time
+  SELECT last_refreshed INTO v_last_refreshed FROM org_statistics;
+  RAISE NOTICE 'View last refreshed at: %', v_last_refreshed;
+
+  -- Verify refresh is recent (within last hour)
+  IF v_last_refreshed < NOW() - INTERVAL '1 hour' THEN
+    RAISE WARNING 'TEST WARNING: View was last refreshed more than 1 hour ago';
+  ELSE
+    RAISE NOTICE 'TEST PASSED: View refresh timestamp is recent';
+  END IF;
+END $$;
+
+-- ============================================================================
+-- TEST 2: Verify Trigger Functions Exist
+-- ============================================================================
+DO $$
+DECLARE
+  v_function_exists BOOLEAN;
+BEGIN
+  -- Check refresh function exists
+  SELECT EXISTS (
+    SELECT 1 FROM pg_proc
+    WHERE proname = 'refresh_org_statistics'
+  ) INTO v_function_exists;
+
+  IF NOT v_function_exists THEN
+    RAISE EXCEPTION 'TEST FAILED: Function refresh_org_statistics does not exist';
+  ELSE
+    RAISE NOTICE 'TEST PASSED: Function refresh_org_statistics exists';
+  END IF;
+
+  -- Check manual refresh function exists
+  SELECT EXISTS (
+    SELECT 1 FROM pg_proc
+    WHERE proname = 'refresh_org_statistics_manual'
+  ) INTO v_function_exists;
+
+  IF NOT v_function_exists THEN
+    RAISE EXCEPTION 'TEST FAILED: Function refresh_org_statistics_manual does not exist';
+  ELSE
+    RAISE NOTICE 'TEST PASSED: Function refresh_org_statistics_manual exists';
+  END IF;
+END $$;
+
+-- ============================================================================
+-- TEST 3: Verify Triggers Exist on Correct Tables
+-- ============================================================================
+DO $$
+DECLARE
+  v_trigger_count INTEGER;
+BEGIN
+  -- Check triggers on leaves table
+  SELECT COUNT(*) INTO v_trigger_count
+  FROM pg_trigger t
+  JOIN pg_class c ON t.tgrelid = c.oid
+  WHERE c.relname = 'leaves'
+  AND t.tgname = 'trigger_refresh_org_stats_on_leave_change';
+
+  IF v_trigger_count = 0 THEN
+    RAISE EXCEPTION 'TEST FAILED: Trigger on leaves table not found';
+  ELSE
+    RAISE NOTICE 'TEST PASSED: Trigger on leaves table exists';
+  END IF;
+
+  -- Check triggers on profiles table
+  SELECT COUNT(*) INTO v_trigger_count
+  FROM pg_trigger t
+  JOIN pg_class c ON t.tgrelid = c.oid
+  WHERE c.relname = 'profiles'
+  AND t.tgname = 'trigger_refresh_org_stats_on_profile_change';
+
+  IF v_trigger_count = 0 THEN
+    RAISE EXCEPTION 'TEST FAILED: Trigger on profiles table not found';
+  ELSE
+    RAISE NOTICE 'TEST PASSED: Trigger on profiles table exists';
+  END IF;
+
+  -- Check triggers on leave_types table
+  SELECT COUNT(*) INTO v_trigger_count
+  FROM pg_trigger t
+  JOIN pg_class c ON t.tgrelid = c.oid
+  WHERE c.relname = 'leave_types'
+  AND t.tgname = 'trigger_refresh_org_stats_on_leave_type_change';
+
+  IF v_trigger_count = 0 THEN
+    RAISE EXCEPTION 'TEST FAILED: Trigger on leave_types table not found';
+  ELSE
+    RAISE NOTICE 'TEST PASSED: Trigger on leave_types table exists';
+  END IF;
+END $$;
+
+-- ============================================================================
+-- TEST 4: Verify Required Indexes Exist
+-- ============================================================================
+DO $$
+DECLARE
+  v_index_count INTEGER;
+  v_required_indexes TEXT[] := ARRAY[
+    'idx_org_statistics_refresh',
+    'idx_leaves_year_start_date',
+    'idx_leaves_status_year_days',
+    'idx_profiles_role_active',
+    'idx_profiles_department_role_active'
+  ];
+  v_index_name TEXT;
+BEGIN
+  FOREACH v_index_name IN ARRAY v_required_indexes
+  LOOP
+    SELECT COUNT(*) INTO v_index_count
+    FROM pg_indexes
+    WHERE schemaname = 'public'
+    AND indexname = v_index_name;
+
+    IF v_index_count = 0 THEN
+      RAISE WARNING 'TEST WARNING: Index % not found', v_index_name;
+    ELSE
+      RAISE NOTICE 'TEST PASSED: Index % exists', v_index_name;
+    END IF;
+  END LOOP;
+END $$;
+
+-- ============================================================================
+-- TEST 5: Verify Data Structure and Content
+-- ============================================================================
+DO $$
+DECLARE
+  v_stats RECORD;
+BEGIN
+  SELECT * INTO v_stats FROM org_statistics;
+
+  -- Check employee_stats structure
+  IF v_stats.employee_stats IS NULL THEN
+    RAISE EXCEPTION 'TEST FAILED: employee_stats is NULL';
+  END IF;
+
+  IF NOT (v_stats.employee_stats ? 'total_employees') THEN
+    RAISE EXCEPTION 'TEST FAILED: employee_stats missing total_employees';
+  END IF;
+
+  RAISE NOTICE 'TEST PASSED: employee_stats structure is valid';
+  RAISE NOTICE '  Total Employees: %', v_stats.employee_stats->>'total_employees';
+  RAISE NOTICE '  Total Managers: %', v_stats.employee_stats->>'total_managers';
+  RAISE NOTICE '  Total HR: %', v_stats.employee_stats->>'total_hr';
+
+  -- Check current_year_leave_stats structure
+  IF v_stats.current_year_leave_stats IS NULL THEN
+    RAISE EXCEPTION 'TEST FAILED: current_year_leave_stats is NULL';
+  END IF;
+
+  RAISE NOTICE 'TEST PASSED: current_year_leave_stats structure is valid';
+  RAISE NOTICE '  Pending Leaves: %', v_stats.current_year_leave_stats->>'pending_leaves';
+  RAISE NOTICE '  Approved Leaves: %', v_stats.current_year_leave_stats->>'approved_leaves';
+  RAISE NOTICE '  Total Days Taken: %', v_stats.current_year_leave_stats->>'total_approved_days';
+
+  -- Check approval_metrics structure
+  IF v_stats.approval_metrics IS NULL THEN
+    RAISE EXCEPTION 'TEST FAILED: approval_metrics is NULL';
+  END IF;
+
+  RAISE NOTICE 'TEST PASSED: approval_metrics structure is valid';
+  RAISE NOTICE '  Approval Rate: %%%', v_stats.approval_metrics->>'approval_rate';
+  RAISE NOTICE '  Avg Approval Time: % hours', v_stats.approval_metrics->>'avg_approval_time_hours';
+END $$;
+
+-- ============================================================================
+-- TEST 6: Test Manual Refresh Function
+-- ============================================================================
+DO $$
+DECLARE
+  v_old_refresh_time TIMESTAMPTZ;
+  v_new_refresh_time TIMESTAMPTZ;
+BEGIN
+  -- Get current refresh time
+  SELECT last_refreshed INTO v_old_refresh_time FROM org_statistics;
+
+  -- Wait a moment to ensure timestamp difference
+  PERFORM pg_sleep(0.1);
+
+  -- Manually refresh
+  PERFORM refresh_org_statistics_manual();
+
+  -- Get new refresh time
+  SELECT last_refreshed INTO v_new_refresh_time FROM org_statistics;
+
+  IF v_new_refresh_time <= v_old_refresh_time THEN
+    RAISE EXCEPTION 'TEST FAILED: Manual refresh did not update last_refreshed timestamp';
+  ELSE
+    RAISE NOTICE 'TEST PASSED: Manual refresh updated timestamp';
+    RAISE NOTICE '  Old timestamp: %', v_old_refresh_time;
+    RAISE NOTICE '  New timestamp: %', v_new_refresh_time;
+  END IF;
+END $$;
+
+-- ============================================================================
+-- TEST 7: Verify Performance (Query Execution Time)
+-- ============================================================================
+DO $$
+DECLARE
+  v_start_time TIMESTAMPTZ;
+  v_end_time TIMESTAMPTZ;
+  v_duration_ms NUMERIC;
+BEGIN
+  v_start_time := clock_timestamp();
+
+  -- Execute query
+  PERFORM * FROM org_statistics;
+
+  v_end_time := clock_timestamp();
+  v_duration_ms := EXTRACT(EPOCH FROM (v_end_time - v_start_time)) * 1000;
+
+  RAISE NOTICE 'Query execution time: % ms', ROUND(v_duration_ms, 2);
+
+  IF v_duration_ms > 200 THEN
+    RAISE WARNING 'TEST WARNING: Query took longer than 200ms target (% ms)', ROUND(v_duration_ms, 2);
+  ELSE
+    RAISE NOTICE 'TEST PASSED: Query completed within 200ms target';
+  END IF;
+END $$;
+
+-- ============================================================================
+-- TEST 8: Verify RLS and Permissions
+-- ============================================================================
+DO $$
+DECLARE
+  v_has_select BOOLEAN;
+BEGIN
+  -- Check if authenticated role can select from org_statistics
+  SELECT has_table_privilege('authenticated', 'org_statistics', 'SELECT')
+  INTO v_has_select;
+
+  IF NOT v_has_select THEN
+    RAISE EXCEPTION 'TEST FAILED: authenticated role cannot SELECT from org_statistics';
+  ELSE
+    RAISE NOTICE 'TEST PASSED: authenticated role has SELECT permission';
+  END IF;
+END $$;
+
+-- ============================================================================
+-- TEST SUMMARY
+-- ============================================================================
+DO $$
+BEGIN
+  RAISE NOTICE '============================================';
+  RAISE NOTICE 'ORG STATISTICS TEST SUITE COMPLETED';
+  RAISE NOTICE '============================================';
+  RAISE NOTICE 'All critical tests passed!';
+  RAISE NOTICE 'View the notices above for detailed results.';
+  RAISE NOTICE '';
+  RAISE NOTICE 'Next Steps:';
+  RAISE NOTICE '1. Deploy Edge Function: supabase functions deploy get-org-stats';
+  RAISE NOTICE '2. Test Edge Function endpoint with authenticated request';
+  RAISE NOTICE '3. Monitor materialized view refresh performance';
+  RAISE NOTICE '4. Review index usage with pg_stat_user_indexes';
+END $$;
+
+-- ============================================================================
+-- QUERY TO VIEW CURRENT STATISTICS (for manual inspection)
+-- ============================================================================
+-- SELECT
+--   last_refreshed,
+--   employee_stats,
+--   current_year_leave_stats,
+--   approval_metrics
+-- FROM org_statistics;

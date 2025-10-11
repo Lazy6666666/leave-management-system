@@ -56,7 +56,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       .from('document_notifiers')
       .select(`
         *,
-        user:profiles!document_notifiers_user_id_fkey(id, full_name, email)
+        user:employees!document_notifiers_user_id_fkey(id, name, email)
       `)
       .eq('document_id', documentId)
       .eq('status', 'active');

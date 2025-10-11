@@ -11,8 +11,8 @@ export default async function handler(
     return res.status(400).json({ error: 'Leave request ID is required' })
   }
 
-  // Only allow PATCH and GET methods
-  if (req.method !== 'PATCH' && req.method !== 'GET') {
+  // Only allow PATCH, GET, and DELETE methods
+  if (req.method !== 'PATCH' && req.method !== 'GET' && req.method !== 'DELETE') {
     return res.status(405).json({ error: 'Method not allowed' })
   }
 
@@ -133,6 +133,58 @@ export default async function handler(
       return res.status(200).json({
         message: 'Leave request updated successfully',
         data: updatedLeave,
+      })
+    }
+
+    // DELETE - Delete leave request
+    if (req.method === 'DELETE') {
+      // Fetch existing leave request
+      const { data: existingLeave, error: fetchError } = await supabase
+        .from('leaves')
+        .select('*')
+        .eq('id', id)
+        .single()
+
+      if (fetchError) {
+        return res.status(404).json({ error: 'Leave request not found' })
+      }
+
+      // Check if user is the owner
+      if (existingLeave.requester_id !== user.id) {
+        return res.status(403).json({ error: 'You can only delete your own leave requests' })
+      }
+
+      // Check if request is pending
+      if (existingLeave.status !== 'pending') {
+        return res.status(400).json({
+          error: 'Only pending leave requests can be deleted'
+        })
+      }
+
+      // Delete associated documents first (if any)
+      const { error: docsDeleteError } = await supabase
+        .from('leave_documents')
+        .delete()
+        .eq('leave_request_id', id)
+
+      if (docsDeleteError) {
+        console.error('Error deleting documents:', docsDeleteError)
+        // Continue with leave deletion even if document deletion fails
+      }
+
+      // Delete the leave request
+      const { error: deleteError } = await supabase
+        .from('leaves')
+        .delete()
+        .eq('id', id)
+
+      if (deleteError) {
+        console.error('Delete error:', deleteError)
+        return res.status(500).json({ error: 'Failed to delete leave request' })
+      }
+
+      return res.status(200).json({
+        message: 'Leave request deleted successfully',
       })
     }
   } catch (error) {

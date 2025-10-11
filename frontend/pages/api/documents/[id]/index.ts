@@ -52,7 +52,7 @@ async function handleGet(req: NextApiRequest, res: NextApiResponse, supabase: Ty
     .from('company_documents')
     .select(`
       *,
-      uploader:profiles!company_documents_uploaded_by_fkey(id, full_name)
+      uploader:employees!company_documents_uploaded_by_fkey(id, name)
     `)
     .eq('id', documentId)
     .single();
@@ -110,7 +110,7 @@ async function handleUpdate(req: NextApiRequest, res: NextApiResponse, supabase:
     .eq('id', documentId)
     .select(`
       *,
-      uploader:profiles!company_documents_uploaded_by_fkey(id, full_name)
+      uploader:employees!company_documents_uploaded_by_fkey(id, name)
     `)
     .single();
 

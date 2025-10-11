@@ -1,0 +1,12 @@
+
+> leave-management-frontend@1.0.0 dev
+> next dev
+
+ ⚠ Port 3000 is in use by process 14232, using available port 3001 instead.
+   ▲ Next.js 15.5.4
+   - Local:        http://localhost:3001
+   - Network:      http://192.168.1.180:3001
+   - Environments: .env.local
+
+ ✓ Starting...
+ ✓ Ready in 5.2s

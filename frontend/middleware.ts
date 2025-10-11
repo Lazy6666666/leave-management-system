@@ -50,16 +50,16 @@ export async function middleware(request: NextRequest) {
 
     let userRole: string | null = null;
     if (user) {
-      const { data: profile, error } = await supabase
-        .from('profiles') // <--- HERE!
+      const { data: employee, error } = await supabase
+        .from('employees')
         .select('role')
         .eq('id', user.id)
         .single()
 
       if (error) {
-        console.error('Error fetching user profile in middleware:', error);
-      } else if (profile) {
-        userRole = profile.role;
+        console.error('Error fetching user employee in middleware:', error);
+      } else if (employee) {
+        userRole = employee.role;
       }
     }
 

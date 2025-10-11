@@ -1,9 +1,12 @@
+import Link from 'next/link'
 import { useState } from 'react'
-import { useAdminUsers, useUpdateUserRole, useDeactivateUser, useAddUser } from '@/hooks/use-admin'
+import { useAdminUsers, useUpdateUserRole, useDeactivateUser, useAddUser, AdminUsersResponse } from '@/hooks/use-admin'
+import { useQueryClient } from '@tanstack/react-query'
 import { PageHeader } from '@/components/ui/page-header'
 import { EmptyState } from '@/components/ui/empty-state'
 import { Button } from '@/ui/button'
 import { Input } from '@/ui/input'
+import { Label } from '@/ui/label'
 import { Badge } from '@/ui/badge'
 import { Card, CardContent } from '@/ui/card'
 import { Skeleton } from '@/ui/skeleton'
@@ -30,7 +33,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/ui/select'
-import { Users, Search, AlertTriangle, Loader2 } from 'lucide-react'
+import { Users, Search, AlertTriangle, Loader2, Edit } from 'lucide-react'
 
 export default function AdminUsersPage() {
   const [search, setSearch] = useState('')
@@ -39,6 +42,10 @@ export default function AdminUsersPage() {
   const [selectedUser, setSelectedUser] = useState<{ id: string; name: string } | null>(null)
   const [addDialogOpen, setAddDialogOpen] = useState(false)
   const [addUserRole, setAddUserRole] = useState<'employee' | 'manager' | 'admin' | 'hr'>('employee')
+  const [editDialogOpen, setEditDialogOpen] = useState(false)
+
+// ...
+const [userToEdit, setUserToEdit] = useState<AdminUsersResponse['users'][number] | null>(null)
 
   const { data, isLoading, isError, error } = useAdminUsers({ search, role: roleFilter })
   const updateRole = useUpdateUserRole()
@@ -71,6 +78,25 @@ export default function AdminUsersPage() {
       console.error('Failed to add user:', err);
     }
   }
+
+  const handleEditUserSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!userToEdit) return;
+
+    try {
+      await updateRole.mutateAsync({
+        user_id: userToEdit.supabase_id,
+        new_role: userToEdit.role,
+        full_name: userToEdit.name,
+        department: userToEdit.department || undefined,
+        is_active: userToEdit.is_active,
+      });
+      setEditDialogOpen(false);
+      setUserToEdit(null);
+    } catch (err) {
+      console.error('Failed to update user:', err);
+    }
+  };
 
   const handleRoleUpdate = async (userId: string, newRole: 'employee' | 'manager' | 'admin' | 'hr') => {
     try {
@@ -202,7 +228,8 @@ export default function AdminUsersPage() {
             </TableHeader>
             <TableBody>
               {data.users.map((user) => (
-                <TableRow key={user.supabase_id} className="hover:bg-muted/50 transition-colors border-b">
+                <Link href={`/dashboard/admin/users/${user.id}`} key={user.supabase_id}>
+                  <TableRow className="hover:bg-muted/50 transition-colors border-b cursor-pointer">
                   <TableCell className="font-medium">{user.name}</TableCell>
                   <TableCell className="text-muted-foreground">{user.email}</TableCell>
                   <TableCell className="text-muted-foreground">{user.department ?? '-'}</TableCell>
@@ -232,24 +259,23 @@ export default function AdminUsersPage() {
                     <Button
                       size="sm"
                       variant="ghost"
-                      onClick={() => console.log('Edit user:', user.supabase_id)}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        setUserToEdit(user);
+                        setEditDialogOpen(true);
+                      }}
                       className="hover:bg-blue-500/10 hover:text-blue-500 transition-colors"
                     >
                       <Edit className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => console.log('Delete user:', user.supabase_id)}
-                      className="hover:bg-red-500/10 hover:text-red-500 transition-colors"
-                    >
-                      <Trash2 className="h-4 w-4" />
                     </Button>
                     {user.is_active && (
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() => openDeactivateDialog(user.supabase_id, user.name)}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          openDeactivateDialog(user.supabase_id, user.name);
+                        }}
                         disabled={deactivateUser.isPending}
                         className="hover:bg-destructive/10 hover:text-destructive hover:border-destructive/50 transition-colors bg-background"
                       >
@@ -258,6 +284,7 @@ export default function AdminUsersPage() {
                     )}
                   </TableCell>
                 </TableRow>
+                </Link>
               ))}
             </TableBody>
           </Table>
@@ -369,6 +396,54 @@ export default function AdminUsersPage() {
               <Button type="submit" disabled={addUserMutation.isPending}>
                 {addUserMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />} Add User
               </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit User Dialog */}
+      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Edit User</DialogTitle>
+            <DialogDescription>
+              Edit the user's profile information.
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleEditUserSubmit} className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="edit-full_name" className="text-right">Full Name</Label>
+              <Input id="edit-full_name" name="full_name" className="col-span-3" value={userToEdit?.name || ''} onChange={(e) => setUserToEdit(prev => prev ? { ...prev, name: e.target.value } : null)} />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="edit-email" className="text-right">Email</Label>
+              <Input id="edit-email" name="email" type="email" className="col-span-3" value={userToEdit?.email || ''} onChange={(e) => setUserToEdit(prev => prev ? { ...prev, email: e.target.value } : null)} disabled />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="edit-department" className="text-right">Department</Label>
+              <Input id="edit-department" name="department" className="col-span-3" value={userToEdit?.department || ''} onChange={(e) => setUserToEdit(prev => prev ? { ...prev, department: e.target.value } : null)} />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="edit-role" className="text-right">Role</Label>
+              <Select name="role" value={userToEdit?.role} onValueChange={(value) => setUserToEdit(prev => prev ? { ...prev, role: value as 'employee' | 'manager' | 'admin' | 'hr' } : null)}>
+                <SelectTrigger className="col-span-3">
+                  <SelectValue placeholder="Select a role" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="employee">Employee</SelectItem>
+                  <SelectItem value="manager">Manager</SelectItem>
+                  <SelectItem value="hr">HR</SelectItem>
+                  <SelectItem value="admin">Admin</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="edit-is_active" className="text-right">Active</Label>
+              <input id="edit-is_active" name="is_active" type="checkbox" checked={userToEdit?.is_active} onChange={(e) => setUserToEdit(prev => prev ? { ...prev, is_active: e.target.checked } : null)} className="col-span-3 ml-3" />
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setEditDialogOpen(false)}>Cancel</Button>
+              <Button type="submit">Save Changes</Button>
             </DialogFooter>
           </form>
         </DialogContent>

@@ -42,9 +42,9 @@ export default function AdminDocumentsPage() {
   const [uploading, setUploading] = useState(false);
 
   // --- Data Fetching ---
-  const { data: documents, isLoading, error } = useQuery<CompanyDocument[]>(
-    ['companyDocuments', searchQuery],
-    async () => {
+  const { data: documents, isLoading, error } = useQuery<CompanyDocument[]>({
+    queryKey: ['companyDocuments', searchQuery],
+    queryFn: async () => {
       if (!supabase) throw new Error('Supabase client not available');
       let query = supabase.from('company_documents').select('*').order('created_at', { ascending: false });
 
@@ -55,12 +55,12 @@ export default function AdminDocumentsPage() {
       const { data, error } = await query;
       if (error) throw error;
       return data;
-    }
-  );
+    },
+  });
 
   // --- Mutations ---
-  const uploadMutation = useMutation(
-    async ({ file, name, document_type, expiry_date, is_public }: { file: File, name: string, document_type: string, expiry_date: string | null, is_public: boolean }) => {
+  const uploadMutation = useMutation({
+    mutationFn: async ({ file, name, document_type, expiry_date, is_public }: { file: File, name: string, document_type: string, expiry_date: string | null, is_public: boolean }) => {
       if (!supabase) throw new Error('Supabase client not available');
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
@@ -73,23 +73,17 @@ export default function AdminDocumentsPage() {
       // The metadata is saved within uploadCompanyDocumentWithMetadata, so no need to insert here
       return { success: true };
     },
-    {
-      onSuccess: () => {
-        toast({ title: 'Success', description: 'Document uploaded successfully.' });
-        queryClient.invalidateQueries(['companyDocuments']);
-        setShowUploadDialog(false);
-        setFileToUpload(null);
-        setUploading(false);
-      },
-      onError: (err: Error) => {
-        toast({ title: 'Error', description: `Failed to upload document: ${err.message}`, variant: 'destructive' });
-        setUploading(false);
-      },
-    }
-  );
+    onSuccess: () => {
+      toast({ title: 'Success', description: 'Document uploaded successfully.' });
+      queryClient.invalidateQueries({ queryKey: ['companyDocuments'] });
+    },
+    onError: (error: Error) => {
+      toast({ title: 'Error', description: `Upload failed: ${error.message}`, variant: 'destructive' });
+    },
+  });
 
-  const updateMutation = useMutation(
-    async (doc: CompanyDocument) => {
+  const updateMutation = useMutation({
+    mutationFn: async (doc: CompanyDocument) => {
       if (!supabase) throw new Error('Supabase client not available');
       const { data, error } = await supabase.from('company_documents').update({
         name: doc.name,
@@ -100,21 +94,17 @@ export default function AdminDocumentsPage() {
       if (error) throw error;
       return data;
     },
-    {
-      onSuccess: () => {
-        toast({ title: 'Success', description: 'Document updated successfully.' });
-        queryClient.invalidateQueries(['companyDocuments']);
-        setShowEditDialog(false);
-        setSelectedDocument(null);
-      },
-      onError: (err: Error) => {
-        toast({ title: 'Error', description: `Failed to update document: ${err.message}`, variant: 'destructive' });
-      },
-    }
-  );
+    onSuccess: () => {
+      toast({ title: 'Success', description: 'Document updated successfully.' });
+      queryClient.invalidateQueries({ queryKey: ['companyDocuments'] });
+    },
+    onError: (error: Error) => {
+      toast({ title: 'Error', description: `Update failed: ${error.message}`, variant: 'destructive' });
+    },
+  });
 
-  const deleteMutation = useMutation(
-    async (docId: string) => {
+  const deleteMutation = useMutation({
+    mutationFn: async (docId: string) => {
       if (!supabase) throw new Error('Supabase client not available');
       const docToDelete = documents?.find(d => d.id === docId);
       if (!docToDelete) throw new Error('Document not found');
@@ -128,18 +118,14 @@ export default function AdminDocumentsPage() {
       if (error) throw error;
       return docId;
     },
-    {
-      onSuccess: () => {
-        toast({ title: 'Success', description: 'Document deleted successfully.' });
-        queryClient.invalidateQueries(['companyDocuments']);
-        setShowConfirmDeleteDialog(false);
-        setSelectedDocument(null);
-      },
-      onError: (err: Error) => {
-        toast({ title: 'Error', description: `Failed to delete document: ${err.message}`, variant: 'destructive' });
-      },
-    }
-  );
+    onSuccess: () => {
+      toast({ title: 'Success', description: 'Document deleted successfully.' });
+      queryClient.invalidateQueries({ queryKey: ['companyDocuments'] });
+    },
+    onError: (error: Error) => {
+      toast({ title: 'Error', description: `Deletion failed: ${error.message}`, variant: 'destructive' });
+    },
+  });
 
   // --- Handlers ---
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -243,7 +229,7 @@ export default function AdminDocumentsPage() {
                           e.preventDefault();
                           const { signedUrl, error: downloadError } = await getCompanyDocumentDownloadUrl(doc.storage_path);
                           if (downloadError) {
-                            toast({ title: 'Error', description: `Failed to download: ${downloadError.message}`, variant: 'destructive' });
+                            toast({ title: 'Error', description: `Failed to download: ${downloadError}`, variant: 'destructive' });
                           } else if (signedUrl) {
                             window.open(signedUrl, '_blank');
                           }
@@ -339,7 +325,7 @@ export default function AdminDocumentsPage() {
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="edit-type" className="text-right">Type</Label>
-                <Input id="edit-type" name="document_type" defaultValue={selectedDocument.document_type} className="col-span-3" required />
+                <Input id="edit-type" name="document_type" defaultValue={selectedDocument.document_type || ''} className="col-span-3" required />
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="edit-expiry" className="text-right">Expiry Date</Label>
@@ -350,8 +336,8 @@ export default function AdminDocumentsPage() {
                 <input id="edit-public" name="is_public" type="checkbox" defaultChecked={selectedDocument.is_public} className="col-span-3 ml-3" />
               </div>
               <DialogFooter>
-                <Button type="submit" disabled={updateMutation.isLoading}>
-                  {updateMutation.isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />} Save Changes
+                <Button type="submit" disabled={updateMutation.isPending}>
+                  {updateMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />} Save Changes
                 </Button>
               </DialogFooter>
             </form>
@@ -370,8 +356,8 @@ export default function AdminDocumentsPage() {
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowConfirmDeleteDialog(false)}>Cancel</Button>
-            <Button variant="destructive" onClick={handleDeleteConfirm} disabled={deleteMutation.isLoading}>
-              {deleteMutation.isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />} Delete
+            <Button variant="destructive" onClick={handleDeleteConfirm} disabled={deleteMutation.isPending}>
+              {deleteMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />} Delete
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -26,9 +26,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       let query = supabase
         .from('employees')
-        .select('id, supabase_id, name, email, role, department, is_active', { count: 'exact' })
-        .order('created_at', { ascending: false })
-        .range(offsetNum, offsetNum + limitNum - 1);
+        .select('id, name, email, role', { count: 'exact' });
 
       if (role && typeof role === 'string') {
         query = query.eq('role', role);

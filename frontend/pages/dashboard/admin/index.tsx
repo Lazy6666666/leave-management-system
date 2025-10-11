@@ -1,13 +1,75 @@
+import { useRouter, usePathname, useSearchParams } from 'next/navigation'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/ui/select'
 import { useAdminReports } from '@/hooks/use-admin'
+import { useOrgStats } from '@/hooks/use-org-stats'
 import { StatCard } from '@/components/ui/stat-card'
 import { PageHeader } from '@/components/ui/page-header'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/ui/card'
 import { Skeleton } from '@/ui/skeleton'
 import { Users, UserCheck, UserCog, Clock, FileWarning, Bell, BarChart3 } from 'lucide-react'
 import { LeaveTypeStat } from '@/lib/types'
+import { OrgChart } from '@/components/features/admin/OrgChart'
+import { useMemo } from 'react'
 
 export default function AdminOverviewPage() {
-  const { data, isLoading, isError, error } = useAdminReports()
+  const router = useRouter()
+  const pathname = usePathname()
+  const searchParams = useSearchParams()
+  const currentRole = searchParams.get('role') || 'all'
+
+  const { data, isLoading, isError, error } = useAdminReports(currentRole === 'all' ? undefined : currentRole)
+  const { data: orgStats, isLoading: isOrgStatsLoading, isError: isOrgStatsError } = useOrgStats()
+
+  const handleRoleChange = (value: string) => {
+    const params = new URLSearchParams(searchParams.toString())
+    if (value === 'all') {
+      params.delete('role')
+    } else {
+      params.set('role', value)
+    }
+    router.push(`${pathname}?${params.toString()}`)
+  }
+
+  // Transform org stats data for OrgChart component
+  const chartData = useMemo(() => {
+    if (!orgStats) {
+      return {
+        leaveTypeData: [],
+        departmentData: [],
+        trendData: []
+      }
+    }
+
+    // Transform leave_type_stats to leaveTypeData
+    const leaveTypeData = orgStats.leave_type_stats?.map(stat => ({
+      name: stat.leave_type_name,
+      value: stat.total_days_taken,
+      percentage: stat.total_requests > 0
+        ? Math.round((stat.approved_requests / stat.total_requests) * 100)
+        : 0
+    })) || []
+
+    // Transform department_leave_stats to departmentData
+    const departmentData = orgStats.department_leave_stats?.map(dept => ({
+      department: dept.department || 'Unassigned',
+      employees: Math.round(dept.avg_days_per_employee) || 0,
+      pending: dept.pending_requests,
+      approved: dept.approved_requests
+    })) || []
+
+    // Transform monthly_trends to trendData
+    const trendData = orgStats.monthly_trends?.map(trend => ({
+      month: trend.month_name,
+      leaves: trend.total_requests,
+      approved: trend.approved_requests
+    })) || []
+
+    return {
+      leaveTypeData,
+      departmentData,
+      trendData
+    }
+  }, [orgStats])
 
   if (isLoading) {
     return (
@@ -34,6 +96,8 @@ export default function AdminOverviewPage() {
   }
 
   if (isError) {
+    console.error('Admin dashboard error:', error)
+
     return (
       <div className="space-y-8 p-6 md:p-8 page-transition">
         <PageHeader
@@ -46,11 +110,23 @@ export default function AdminOverviewPage() {
               <div className="rounded-full bg-destructive/10 p-2">
                 <FileWarning className="h-5 w-5 text-destructive" />
               </div>
-              <div>
-                <p className="font-medium text-destructive">Failed to load data</p>
+              <div className="flex-1">
+                <p className="font-medium text-destructive">Failed to load admin dashboard data</p>
                 <p className="text-sm text-destructive/80 mt-1">
-                  {error instanceof Error ? error.message : 'Failed to load summary'}
+                  {error instanceof Error ? error.message : 'An unexpected error occurred while fetching summary data'}
                 </p>
+                <details className="mt-3 text-xs text-destructive/70">
+                  <summary className="cursor-pointer hover:text-destructive">Technical details</summary>
+                  <pre className="mt-2 p-2 bg-destructive/5 rounded border border-destructive/20 overflow-auto">
+                    {error instanceof Error ? error.stack || error.message : JSON.stringify(error, null, 2)}
+                  </pre>
+                </details>
+                <button
+                  onClick={() => window.location.reload()}
+                  className="mt-4 px-4 py-2 bg-destructive text-destructive-foreground rounded hover:bg-destructive/90 text-sm"
+                >
+                  Reload Page
+                </button>
               </div>
             </div>
           </CardContent>
@@ -106,6 +182,21 @@ export default function AdminOverviewPage() {
         title="Organization Overview"
         description="Latest snapshot of employee counts and pending actions"
       />
+
+      <div className="flex justify-end mb-4">
+        <Select value={currentRole} onValueChange={handleRoleChange}>
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder="Filter by Role" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Roles</SelectItem>
+            <SelectItem value="employee">Employee</SelectItem>
+            <SelectItem value="manager">Manager</SelectItem>
+            <SelectItem value="hr">HR</SelectItem>
+            <SelectItem value="admin">Admin</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
 
       {/* Stats Grid with improved spacing */}
       <div className="grid gap-4 md:gap-6 sm:grid-cols-2 xl:grid-cols-3">
@@ -199,6 +290,64 @@ export default function AdminOverviewPage() {
           )}
         </CardContent>
       </Card>
+
+      {/* Organization Analytics Charts */}
+      {!isOrgStatsLoading && !isOrgStatsError && (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-2xl font-bold tracking-tight">Organization Analytics</h2>
+              <p className="text-sm text-muted-foreground">Visual insights into leave patterns and trends</p>
+            </div>
+            {orgStats?.last_refreshed && (
+              <p className="text-xs text-muted-foreground">
+                Last updated: {new Date(orgStats.last_refreshed).toLocaleString()}
+              </p>
+            )}
+          </div>
+          <OrgChart
+            leaveTypeData={chartData.leaveTypeData}
+            departmentData={chartData.departmentData}
+            trendData={chartData.trendData}
+          />
+        </div>
+      )}
+
+      {/* OrgStats Loading State */}
+      {isOrgStatsLoading && (
+        <Card>
+          <CardHeader>
+            <Skeleton className="h-6 w-48" />
+            <Skeleton className="h-4 w-64" />
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <Skeleton key={i} className="h-[300px] w-full" />
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* OrgStats Error State */}
+      {isOrgStatsError && (
+        <Card className="border-warning bg-warning/5">
+          <CardContent className="p-6">
+            <div className="flex items-start gap-3">
+              <div className="rounded-full bg-warning/10 p-2">
+                <BarChart3 className="h-5 w-5 text-warning" />
+              </div>
+              <div className="flex-1">
+                <p className="font-medium text-warning">Unable to load organization analytics</p>
+                <p className="text-sm text-warning/80 mt-1">
+                  The analytics charts are temporarily unavailable. Other dashboard features are still functional.
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   )
 }

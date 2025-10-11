@@ -31,9 +31,9 @@ export function useApprovals(filters?: ApprovalsFilters) {
         .from('leaves')
         .select(`
           *,
-          requester:profiles!leaves_requester_id_fkey(id, full_name, department, photo_url),
+          requester:employees!leaves_requester_id_fkey(id, name, department, photo_url),
           leave_type:leave_types(id, name, description),
-          approver:profiles!leaves_approver_id_fkey(id, full_name)
+          approver:employees!leaves_approver_id_fkey(id, name)
         `)
         .eq('status', 'pending')
         .order('created_at', { ascending: false })

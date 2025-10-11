@@ -10,6 +10,20 @@ export interface Profile {
   photo_url?: string | null
 }
 
+export interface Employee {
+  id: string
+  name: string
+  full_name?: string // Alias for name for backward compatibility
+  role: UserRole
+  department?: string | null
+  photo_url?: string | null
+  email?: string | null
+  first_name?: string | null
+  last_name?: string | null
+  is_active?: boolean
+  supabase_id?: string
+}
+
 export interface LeaveType {
   id: string
   name: string
@@ -37,8 +51,9 @@ export interface Leave {
 }
 
 export interface LeaveWithRelations extends Leave {
-  requester?: Profile
+  requester?: Employee
   leave_type?: LeaveType
+  approver?: Employee
 }
 
 export interface LeaveDocument {

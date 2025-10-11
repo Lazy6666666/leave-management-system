@@ -63,7 +63,7 @@ async function handleGet(req: NextApiRequest, res: NextApiResponse, supabase: Ty
     .from('document_notifiers')
     .select(`
       *,
-      user:profiles!document_notifiers_user_id_fkey(id, full_name, email),
+      user:employees!document_notifiers_user_id_fkey(id, name, email),
       document:company_documents(id, name)
     `)
     .eq('document_id', documentId)
@@ -153,7 +153,7 @@ async function handlePost(req: NextApiRequest, res: NextApiResponse, supabase: T
     })
     .select(`
       *,
-      user:profiles!document_notifiers_user_id_fkey(id, full_name, email),
+      user:employees!document_notifiers_user_id_fkey(id, name, email),
       document:company_documents(id, name)
     `)
     .single();

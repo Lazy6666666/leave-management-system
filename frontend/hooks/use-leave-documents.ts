@@ -58,7 +58,7 @@ export function useLeaveWithDocuments(leaveRequestId: string, enabled = true) {
         .from('leaves')
         .select(`
           *,
-          requester:profiles!requester_id(id, full_name, role, department),
+          requester:employees!leaves_requester_id_fkey(id, name, role, department),
           leave_type:leave_types(id, name, description, default_allocation_days, is_active)
         `)
         .eq('id', leaveRequestId)

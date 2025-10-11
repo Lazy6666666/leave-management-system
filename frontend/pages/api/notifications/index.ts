@@ -56,7 +56,7 @@ async function handleGet(req: NextApiRequest, res: NextApiResponse, supabase: Ty
       *,
       notifier:document_notifiers(
         id,
-        user:profiles!document_notifiers_user_id_fkey(id, full_name, email)
+        user:employees!document_notifiers_user_id_fkey(id, name, email)
       ),
       document:company_documents(id, name, document_type, expiry_date)
     `, { count: 'exact' })
@@ -189,7 +189,7 @@ async function handlePost(req: NextApiRequest, res: NextApiResponse, supabase: T
       *,
       notifier:document_notifiers(
         id,
-        user:profiles!document_notifiers_user_id_fkey(id, full_name, email)
+        user:employees!document_notifiers_user_id_fkey(id, name, email)
       ),
       document:company_documents(id, name, document_type, expiry_date)
     `)

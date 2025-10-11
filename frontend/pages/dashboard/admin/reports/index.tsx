@@ -33,9 +33,18 @@ import {
   TableHeader,
   TableRow,
 } from '@/ui/table'
-import { Users, UserCheck, UserCog, Clock, FileWarning, Bell, BarChart3, TrendingUp, AlertCircle, Download, Filter } from 'lucide-react'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/ui/dialog'
+import { Users, UserCheck, UserCog, Clock, FileWarning, Bell, BarChart3, TrendingUp, AlertCircle, Download, Filter, FileText } from 'lucide-react'
 import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
-// import Papa from 'papaparse'
+import * as XLSX from 'xlsx'
+import { saveAs } from 'file-saver'
 
 const REPORT_TYPES = [
   { value: 'overview', label: 'Overview' },
@@ -62,15 +71,16 @@ export default function AdminReportsPage() {
     isError: isReportError 
   } = useReportData(reportType, { startDate, endDate, department, leaveTypeId })
 
-  const handleExportCSV = () => {
+  const handleExportExcel = () => {
     if (!reportData?.data) return
 
-    let csvData: Record<string, string | number>[] = []
-    let filename = `report-${reportType}-${new Date().toISOString().split('T')[0]}.csv`
+    let excelData: Record<string, string | number>[] = []
+    let filename = `report-${reportType}-${new Date().toISOString().split('T')[0]}.xlsx`
+    const sheetName = REPORT_TYPES.find(t => t.value === reportType)?.label || 'Report'
 
     switch (reportType) {
       case 'leave-usage':
-        csvData = (reportData.data as LeaveUsageReportItem[]).map((item) => ({
+        excelData = (reportData.data as LeaveUsageReportItem[]).map((item) => ({
           'Employee': item.requester?.full_name || 'N/A',
           'Department': item.requester?.department || 'N/A',
           'Leave Type': item.leave_type?.name || 'N/A',
@@ -81,28 +91,28 @@ export default function AdminReportsPage() {
         }))
         break
       case 'leave-by-type':
-        csvData = (reportData.data as LeaveByTypeReportItem[]).map((item) => ({
+        excelData = (reportData.data as LeaveByTypeReportItem[]).map((item) => ({
           'Leave Type': item.leaveTypeName,
           'Total Requests': item.totalRequests,
           'Total Days': item.totalDays,
         }))
         break
       case 'leave-by-department':
-        csvData = (reportData.data as LeaveByDepartmentReportItem[]).map((item) => ({
+        excelData = (reportData.data as LeaveByDepartmentReportItem[]).map((item) => ({
           'Department': item.department,
           'Total Requests': item.totalRequests,
           'Total Days': item.totalDays,
         }))
         break
       case 'leave-trends':
-        csvData = (reportData.data as LeaveTrendsReportItem[]).map((item) => ({
+        excelData = (reportData.data as LeaveTrendsReportItem[]).map((item) => ({
           'Month': item.month,
           'Total Requests': item.totalRequests,
           'Total Days': item.totalDays,
         }))
         break
       case 'employee-balances':
-        csvData = (reportData.data as EmployeeBalancesReportItem[]).map((item) => ({
+        excelData = (reportData.data as EmployeeBalancesReportItem[]).map((item) => ({
           'Employee': item.employeeName,
           'Department': item.department,
           'Role': item.role,
@@ -115,17 +125,12 @@ export default function AdminReportsPage() {
         return
     }
 
-    // const csv = Papa.unparse(csvData)
-    const csv = csvData.map(row => Object.values(row).join(',')).join('\n')
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
-    const link = document.createElement('a')
-    const url = URL.createObjectURL(blob)
-    link.setAttribute('href', url)
-    link.setAttribute('download', filename)
-    link.style.visibility = 'hidden'
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
+    const ws = XLSX.utils.json_to_sheet(excelData)
+    const wb = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(wb, ws, sheetName)
+    const excelBuffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array' })
+    const dataBlob = new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8' })
+    saveAs(dataBlob, filename)
   }
 
   const handleResetFilters = () => {
@@ -313,9 +318,9 @@ export default function AdminReportsPage() {
                 Reset Filters
               </Button>
               {reportData?.data && (
-                <Button variant="outline" size="sm" onClick={handleExportCSV}>
+                <Button variant="outline" size="sm" onClick={handleExportExcel}>
                   <Download className="h-4 w-4 mr-2" />
-                  Export CSV
+                  Export Excel
                 </Button>
               )}
             </div>

@@ -164,10 +164,10 @@ async function getLeaveByTypeReport(
   }
 
   let filteredLeaves = leaves || [];
-  
+
   if (department) {
     filteredLeaves = filteredLeaves.filter(leave => {
-      const requester = leave.requester as any
+      const requester = leave.requester as { department?: string }
       return requester?.department === department
     });
   }
@@ -230,10 +230,10 @@ async function getLeaveByDepartmentReport(
   }
 
   let filteredLeaves = leaves || [];
-  
+
   if (leaveTypeId) {
     filteredLeaves = filteredLeaves.filter(leave => {
-      const leaveType = leave.leave_type as any
+      const leaveType = leave.leave_type as { id?: string }
       return leaveType?.id === leaveTypeId
     });
   }

@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import { createClient } from '@/lib/supabase-server';
 import { getUserProfile, isAdminOrHr } from '@/lib/permissions';
 import { TypedSupabaseClient } from '@/lib/types';
+import type { TablesUpdate } from '@/lib/database.types';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
@@ -54,13 +55,7 @@ async function handlePatch(req: NextApiRequest, res: NextApiResponse, supabase: 
   const { name, description, default_allocation_days, is_active } = req.body;
 
   // Build update object
-  const updates: Partial<{
-    name: string
-    description: string | null
-    default_allocation_days: number
-    accrual_rules: Record<string, unknown> | null
-    is_active: boolean
-  }> = {};
+  const updates: TablesUpdate<'leave_types'> = {};
 
   if (name !== undefined) {
     if (!name.trim()) {
@@ -106,7 +101,7 @@ async function handlePatch(req: NextApiRequest, res: NextApiResponse, supabase: 
   // Update leave type
   const { data, error } = await supabase
     .from('leave_types')
-    .update(updates as any)
+    .update(updates)
     .eq('id', id)
     .select()
     .single();

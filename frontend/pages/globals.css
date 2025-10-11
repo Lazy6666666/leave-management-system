@@ -140,6 +140,40 @@
   .card-interactive {
     @apply transition-all duration-200 hover:shadow-md hover:border-primary/30 hover:-translate-y-0.5;
   }
+
+  /* Glassmorphism utilities */
+  .glass-blue {
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.7), rgba(37, 99, 235, 0.6));
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(59, 130, 246, 0.3);
+    box-shadow: 0 8px 32px 0 rgba(59, 130, 246, 0.2);
+    @apply text-white font-semibold transition-all duration-300;
+  }
+
+  .glass-blue:hover {
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.85), rgba(37, 99, 235, 0.75));
+    box-shadow: 0 12px 40px 0 rgba(59, 130, 246, 0.4);
+    transform: translateY(-2px);
+  }
+
+  .glass-blue:active {
+    transform: translateY(0);
+  }
+
+  /* Solid card background for dialogs - theme aware */
+  .glass-card {
+    @apply bg-card border-border;
+    backdrop-filter: none;
+  }
+
+  :root .glass-card {
+    background: oklch(100% 0 0); /* Solid white in light mode */
+  }
+
+  .dark .glass-card {
+    background: oklch(15% 0.01 259.46); /* Solid dark in dark mode */
+  }
 }
 
 @layer base {

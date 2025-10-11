@@ -1,8 +1,9 @@
+import React from 'react'
 import { AvatarUpload } from '@/components/features/AvatarUpload'
 import { PageHeader } from '@/components/ui/page-header'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
+import { Button } from '@/ui/button'
+import { Input } from '@/ui/input'
+import { Label } from '@/ui/label'
 import { useAuth } from '@/hooks/use-auth'
 import { useUserProfile } from '@/hooks/use-user-profile'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
@@ -10,7 +11,7 @@ import { getBrowserClient } from '@/lib/supabase-client'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
-import { toast } from '@/components/ui/use-toast'
+import { toast } from '@/hooks/use-toast'
 import { Loader2 } from 'lucide-react'
 
 const profileSchema = z.object({
@@ -64,7 +65,9 @@ export default function ProfilePage() {
       if (error) throw error
     },
     onSuccess: () => {
-      queryClient.invalidateQueries(['userProfile', user?.id])
+      queryClient.invalidateQueries({
+        queryKey: ['userProfile', user?.id],
+      })
       toast({
         title: 'Profile updated',
         description: 'Your profile has been successfully updated.',
@@ -107,7 +110,7 @@ export default function ProfilePage() {
     <div className="space-y-6 p-6 md:p-8">
       <PageHeader title="Profile" description="Manage your profile settings" />
 
-      <form onSubmit={handleSubmit(updateProfileMutation.mutate)} className="space-y-6">
+      <form onSubmit={handleSubmit((data) => updateProfileMutation.mutate(data))} className="space-y-6">
         <AvatarUpload
           userId={user?.id || ''}
           avatarUrl={userProfile?.photo_url || null}

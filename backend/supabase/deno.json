@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "allowJs": true,
-    "lib": ["deno.window", "esnext"],
+    "lib": ["deno.window", "deno.ns", "esnext"],
     "strict": true,
     "skipLibCheck": true,
     "noImplicitAny": true,
@@ -13,7 +13,7 @@
     "noUnusedParameters": true,
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
-    "esModuleInterop": true
+    "types": []
   },
   "importMap": "./import_map.json"
 }

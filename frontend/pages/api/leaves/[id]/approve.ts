@@ -24,7 +24,7 @@ async function approveLeaveHandler(
   // Fetch existing leave request
   const { data: existingLeave, error: fetchError } = await req.supabase
     .from('leaves')
-    .select('*, requester:profiles!leaves_requester_id_fkey(id, full_name, department)')
+    .select('*, requester:employees!leaves_requester_id_fkey(id, name, department)')
     .eq('id', id)
     .single()
 
@@ -62,9 +62,9 @@ async function approveLeaveHandler(
     .eq('id', id)
     .select(`
       *,
-      requester:profiles!leaves_requester_id_fkey(id, full_name, department, photo_url),
+      requester:employees!leaves_requester_id_fkey(id, name, department, photo_url),
       leave_type:leave_types(id, name, description),
-      approver:profiles!leaves_approver_id_fkey(id, full_name)
+      approver:employees!leaves_approver_id_fkey(id, name)
     `)
     .single()
 

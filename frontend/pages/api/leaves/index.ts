@@ -73,9 +73,9 @@ async function handleGet(req: NextApiRequest, res: NextApiResponse, supabase: Ty
     .from('leaves')
     .select(`
       *,
-      requester:profiles!leaves_requester_id_fkey(id, full_name, department, photo_url),
+      requester:employees!leaves_requester_id_fkey(id, name, department, photo_url),
       leave_type:leave_types(id, name, description),
-      approver:profiles!leaves_approver_id_fkey(id, full_name)
+      approver:employees!leaves_approver_id_fkey(id, name)
     `, { count: 'exact' })
     .order('created_at', { ascending: false })
     .range(offsetNum, offsetNum + limitNum - 1);
@@ -156,9 +156,9 @@ async function handlePost(req: NextApiRequest, res: NextApiResponse, supabase: T
     })
     .select(`
       *,
-      requester:profiles!leaves_requester_id_fkey(id, full_name, department, photo_url),
+      requester:employees!leaves_requester_id_fkey(id, name, department, photo_url),
       leave_type:leave_types(id, name, description),
-      approver:profiles!leaves_approver_id_fkey(id, full_name)
+      approver:employees!leaves_approver_id_fkey(id, name)
     `)
     .single();
 

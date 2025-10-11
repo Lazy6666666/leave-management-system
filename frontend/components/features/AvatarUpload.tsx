@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { getBrowserClient } from '@/lib/supabase-client';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { Avatar, AvatarFallback, AvatarImage } from '@/ui/avatar';
+import { Button } from '@/ui/button';
+import { Input } from '@/ui/input';
+import { Label } from '@/ui/label';
 import { Loader2, Camera } from 'lucide-react';
 
 interface AvatarUploadProps {
@@ -54,7 +54,7 @@ export function AvatarUpload({ userId, avatarUrl, onUploadSuccess }: AvatarUploa
       return newUrl;
     },
     onSuccess: (newUrl) => {
-      queryClient.invalidateQueries(['userProfile', userId]);
+      queryClient.invalidateQueries({ queryKey: ['userProfile', userId] });
       if (onUploadSuccess) {
         onUploadSuccess(newUrl);
       }
@@ -68,7 +68,9 @@ export function AvatarUpload({ userId, avatarUrl, onUploadSuccess }: AvatarUploa
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files.length > 0) {
-      setFile(event.target.files[0]);
+      setFile(event.target.files[0] || null);
+    } else {
+      setFile(null);
     }
   };
 
@@ -83,7 +85,7 @@ export function AvatarUpload({ userId, avatarUrl, onUploadSuccess }: AvatarUploa
         <AvatarFallback className="text-4xl font-semibold"><Camera /></AvatarFallback>
       </Avatar>
       <div className="flex items-center gap-2">
-        <Label htmlFor="avatar-upload" className="cursor-pointer">
+        <div>
           <Input
             id="avatar-upload"
             type="file"
@@ -92,10 +94,12 @@ export function AvatarUpload({ userId, avatarUrl, onUploadSuccess }: AvatarUploa
             className="hidden"
             disabled={uploadMutation.isPending}
           />
-          <Button asChild variant="outline" disabled={uploadMutation.isPending}>
-            <span>{file ? file.name : 'Choose File'}</span>
-          </Button>
-        </Label>
+          <Label htmlFor="avatar-upload">
+            <Button variant="outline" disabled={uploadMutation.isPending} type="button">
+              {file ? file.name : 'Choose File'}
+            </Button>
+          </Label>
+        </div>
         <Button
           onClick={handleUpload}
           disabled={!file || uploadMutation.isPending}

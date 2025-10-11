@@ -112,11 +112,6 @@ BEGIN
   
   -- Create users
   v_admin_id := create_test_user('admin@test.com', 'Test123!', 'Admin User', 'admin', 'Management');
-  v_hr_id := create_test_user('hr@test.com', 'Test123!', 'HR Manager', 'hr', 'Human Resources');
-  v_manager_id := create_test_user('manager@test.com', 'Test123!', 'Department Manager', 'manager', 'Engineering');
-  v_employee1_id := create_test_user('employee1@test.com', 'Test123!', 'John Doe', 'employee', 'Engineering');
-  v_employee2_id := create_test_user('employee2@test.com', 'Test123!', 'Jane Smith', 'employee', 'Marketing');
-  v_employee3_id := create_test_user('employee3@test.com', 'Test123!', 'Bob Johnson', 'employee', 'Sales');
   
   -- Initialize leave balances for all users
   v_current_year := EXTRACT(YEAR FROM CURRENT_DATE)::INTEGER;
@@ -133,7 +128,7 @@ BEGIN
     v_current_year
   FROM profiles p
   CROSS JOIN leave_types lt
-  WHERE p.id IN (v_admin_id, v_hr_id, v_manager_id, v_employee1_id, v_employee2_id, v_employee3_id)
+  WHERE p.id IN (v_admin_id)
     AND lt.is_active = true
   ON CONFLICT (employee_id, leave_type_id, year) DO UPDATE
   SET allocated_days = EXCLUDED.allocated_days;
@@ -142,11 +137,6 @@ BEGIN
   RAISE NOTICE '';
   RAISE NOTICE '📋 Test User Credentials:';
   RAISE NOTICE '  admin@test.com      | Password: Test123! | Role: admin';
-  RAISE NOTICE '  hr@test.com         | Password: Test123! | Role: hr';
-  RAISE NOTICE '  manager@test.com    | Password: Test123! | Role: manager';
-  RAISE NOTICE '  employee1@test.com  | Password: Test123! | Role: employee';
-  RAISE NOTICE '  employee2@test.com  | Password: Test123! | Role: employee';
-  RAISE NOTICE '  employee3@test.com  | Password: Test123! | Role: employee';
   RAISE NOTICE '';
   RAISE NOTICE '💡 You can now login at http://localhost:3000/login';
 END $$;

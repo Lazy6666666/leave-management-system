@@ -2,7 +2,10 @@ import { z } from 'zod'
 
 export const updateUserRoleSchema = z.object({
   user_id: z.string().uuid('Invalid user id'),
-  new_role: z.enum(['employee', 'manager', 'admin', 'hr']),
+  new_role: z.enum(['employee', 'manager', 'admin', 'hr']).optional(),
+  full_name: z.string().min(2, 'Full name must be at least 2 characters').optional(),
+  department: z.string().optional(),
+  is_active: z.boolean().optional(),
 })
 
 export type UpdateUserRolePayload = z.infer<typeof updateUserRoleSchema>

@@ -7,21 +7,31 @@
 -- Drop and recreate the function with fixed aggregate nesting
 CREATE OR REPLACE FUNCTION get_leave_statistics(
   p_user_id UUID,
-  p_year INTEGER
+  p_year INTEGER,
+  p_role TEXT DEFAULT NULL
 )
 RETURNS JSON AS $$
 DECLARE
   v_result JSON;
   v_role user_role;
+  v_total_employees INTEGER;
+  v_total_managers INTEGER;
+  v_total_hr INTEGER;
 BEGIN
   -- Get user role
   SELECT role INTO v_role FROM profiles WHERE id = p_user_id;
 
   -- Build statistics based on role
   IF v_role IN ('hr', 'admin') THEN
-    -- Admin/HR sees organization-wide stats
+    -- Admin/HR sees organization-wide stats, potentially filtered by p_role
+    SELECT COUNT(*) INTO v_total_employees FROM profiles WHERE role = 'employee' AND (p_role IS NULL OR p_role = 'all' OR role = p_role);
+    SELECT COUNT(*) INTO v_total_managers FROM profiles WHERE role = 'manager' AND (p_role IS NULL OR p_role = 'all' OR role = p_role);
+    SELECT COUNT(*) INTO v_total_hr FROM profiles WHERE role = 'hr' AND (p_role IS NULL OR p_role = 'all' OR role = p_role);
+
     SELECT json_build_object(
-      'total_employees', (SELECT COUNT(*) FROM profiles WHERE role = 'employee'),
+      'total_employees', v_total_employees,
+      'total_managers', v_total_managers,
+      'total_hr', v_total_hr,
       'total_leaves_pending', (SELECT COUNT(*) FROM leaves WHERE status = 'pending'),
       'total_leaves_approved', (SELECT COUNT(*) FROM leaves WHERE status = 'approved' AND EXTRACT(YEAR FROM start_date) = p_year),
       'total_days_taken', (SELECT COALESCE(SUM(days_count), 0) FROM leaves WHERE status = 'approved' AND EXTRACT(YEAR FROM start_date) = p_year),

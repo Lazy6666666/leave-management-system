@@ -3,7 +3,14 @@
     "allow": [
       "Bash(npm test:*)",
       "Bash(npm audit:*)",
-      "Bash(npm run build:*)"
+      "Bash(npm run build:*)",
+      "mcp__Ref__ref_search_documentation",
+      "mcp__Ref__ref_read_url",
+      "Bash(gh issue list:*)",
+      "Bash(for i in 2 3 4 5 6 7 8 9 10)",
+      "Bash(do echo \"=== ISSUE #$i ===\")",
+      "Bash(gh issue:*)",
+      "Bash(done)"
     ],
     "deny": [],
     "ask": []

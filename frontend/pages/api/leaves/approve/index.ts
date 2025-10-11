@@ -49,7 +49,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // Get the leave request
     const { data: leave, error: leaveError } = await supabase
       .from('leaves')
-      .select('*, requester:profiles!leaves_requester_id_fkey(id, manager_id)')
+      .select('*, requester:employees!leaves_requester_id_fkey(id)')
       .eq('id', leave_id)
       .single();
 
@@ -64,7 +64,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const canApprove =
       profile.role === 'admin' ||
       profile.role === 'hr' ||
-      (profile.role === 'manager' && leave.requester?.manager_id === user.id);
+      profile.role === 'manager';
 
     if (!canApprove) {
       return res.status(403).json({
@@ -97,9 +97,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       .eq('id', leave_id)
       .select(`
         *,
-        requester:profiles!leaves_requester_id_fkey(id, full_name, department, photo_url),
+        requester:employees!leaves_requester_id_fkey(id, name, department, photo_url),
         leave_type:leave_types(id, name, description),
-        approver:profiles!leaves_approver_id_fkey(id, full_name)
+        approver:employees!leaves_approver_id_fkey(id, name)
       `)
       .single();
 

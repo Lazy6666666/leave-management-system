@@ -10,10 +10,11 @@ import {
   FolderOpen,
   BarChart3,
   ListChecks,
+  Search,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 
-export type UserRole = 'employee' | 'manager' | 'admin'
+export type UserRole = 'employee' | 'manager' | 'admin' | 'hr'
 
 export interface NavItem {
   name: string
@@ -96,10 +97,10 @@ export const adminNavigation: NavItem[] = [
   },
   {
     name: 'Reports',
-    href: '/dashboard/admin/reports',
-    icon: BarChart3,
-    roles: ['admin'],
-    description: 'View analytics and reports',
+    href: '/dashboard/reports',
+    icon: Search,
+    roles: ['admin', 'hr'],
+    description: 'Search and manage employee information',
   },
   {
     name: 'Leave Types',

@@ -41,7 +41,8 @@
     "cleanup:validate": "run-s validate-typescript production-check",
     "cleanup:files": "tsx scripts/cleanup-files.ts",
     "cleanup:files:dry": "tsx scripts/cleanup-files.ts --dry-run --verbose",
-    "cleanup:files:stats": "tsx scripts/cleanup-files.ts --stats"
+    "cleanup:files:stats": "tsx scripts/cleanup-files.ts --stats",
+    "test:all": "tsx scripts/run-all-tests.ts"
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [
@@ -79,6 +80,7 @@
     "date-fns": "^4.1.0",
     "eslint": "^9.36.0",
     "eslint-config-prettier": "^10.1.8",
+    "file-saver": "^2.0.5",
     "lucide-react": "^0.544.0",
     "mini-svg-data-uri": "^1.4.4",
     "motion": "^12.23.22",
@@ -98,6 +100,7 @@
     "tailwindcss": "^4.1.14",
     "tailwindcss-animate": "^1.0.7",
     "typescript": "^5.9.3",
+    "xlsx": "^0.18.5",
     "zod": "^4.1.11"
   },
   "devDependencies": {
@@ -114,6 +117,7 @@
     "@storybook/test": "^8.2.0",
     "@testing-library/react": "^16.3.0",
     "@testing-library/user-event": "^14.6.1",
+    "@types/file-saver": "^2.0.7",
     "@types/glob": "^8.1.0",
     "@types/node": "^20.19.19",
     "@types/papaparse": "^5.3.16",

@@ -1,6 +1,8 @@
 'use client'
 
+import { useEffect } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { getBrowserClient } from '@/lib/supabase-client'
 
 import { DocumentUploadPayload, DocumentQueryParams, documentQuerySchema } from '@/lib/schemas/document'
 import type { UpdateUserRolePayload, UpsertLeaveTypePayload } from '@/lib/schemas/admin'
@@ -19,8 +21,8 @@ async function fetcher<T>(input: RequestInfo | URL, init?: RequestInit): Promise
   return response.json() as Promise<T>
 }
 
-type AdminUsersResponse = {
-  users: Array<{ id: string; supabase_id: string; name: string; email: string; role: string; department?: string | null; is_active: boolean }>
+export type AdminUsersResponse = {
+  users: Array<{ id: string; supabase_id: string; name: string; email: string; role: 'employee' | 'manager' | 'admin' | 'hr'; department?: string | null; is_active: boolean }>
   total: number
   hasMore: boolean
 }
@@ -65,6 +67,22 @@ export function useDeactivateUser() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-users'] })
       queryClient.invalidateQueries({ queryKey: ['admin-reports'] })
+    },
+  })
+}
+
+export function useDeleteUser() {
+  const queryClient = useQueryClient()
+
+  return useMutation<{ success: boolean }, Error, string>({
+    mutationFn: (userId) =>
+      fetcher(`/api/admin/users/delete?id=${userId}`, {
+        method: 'DELETE',
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-users'] })
+      queryClient.invalidateQueries({ queryKey: ['admin-reports'] })
+      queryClient.invalidateQueries({ queryKey: ['admin-audit-logs'] })
     },
   })
 }
@@ -137,10 +155,47 @@ export function useDeleteLeaveType() {
   })
 }
 
-export function useAdminReports() {
+export function useAdminReports(role?: string) {
+  const queryClient = useQueryClient()
+  const supabase = getBrowserClient()
+
+  useEffect(() => {
+    if (!supabase) return
+
+    const channel = supabase
+      .channel('public:profiles')
+      .on('postgres_changes',
+        { event: '*', schema: 'public', table: 'profiles' },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ['admin-reports'] })
+        }
+      )
+      .subscribe()
+
+    return () => {
+      channel.unsubscribe()
+    }
+  }, [queryClient, supabase])
+
+  const params = new URLSearchParams()
+  if (role) params.set('role', role)
+
   return useQuery<{ summary: AdminSummary }>({
-    queryKey: ['admin-reports'],
-    queryFn: () => fetcher('/api/admin/reports'),
+    queryKey: ['admin-reports', role],
+    queryFn: async () => {
+      try {
+        const result = await fetcher<{ summary: AdminSummary }>(`/api/admin/reports?${params.toString()}`)
+        console.log('DEBUG - Admin reports loaded successfully:', result)
+        return result
+      } catch (error) {
+        console.error('DEBUG - Admin reports fetch failed:', error)
+        throw error
+      }
+    },
+    retry: 3,
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000), // Exponential backoff
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    refetchOnWindowFocus: true,
   })
 }
 

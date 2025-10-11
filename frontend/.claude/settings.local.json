@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//c/Users/Twisted/Desktop/LEAVE/backend/supabase/migrations/**)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

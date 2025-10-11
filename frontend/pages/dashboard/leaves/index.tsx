@@ -58,14 +58,32 @@ export default function LeavesPage() {
     setDeleteDialogOpen(true)
   }
 
-  const handleDeleteConfirm = () => {
-    if (selectedLeaveId) {
-      // In a real app, this would call an API to delete the leave request
-      console.log('Deleting leave request:', selectedLeaveId)
-      // Remove from local state or refetch data
+  const handleDeleteConfirm = async () => {
+    if (!selectedLeaveId) return
+
+    try {
+      const response = await fetch(`/api/leaves/${selectedLeaveId}`, {
+        method: 'DELETE',
+      })
+
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.error || 'Failed to delete leave request')
+      }
+
+      // Show success toast (you'll need to import useToast)
+      // For now, we'll use a simple alert until toast is properly integrated
+      alert('Leave request deleted successfully!')
+
+      // Close dialog
       setDeleteDialogOpen(false)
       setSelectedLeaveId(null)
-      alert('Leave request deleted successfully!')
+
+      // Refresh the page to show updated data
+      window.location.reload()
+    } catch (error) {
+      console.error('Failed to delete leave request:', error)
+      alert(error instanceof Error ? error.message : 'Failed to delete leave request')
     }
   }
   const [isDialogOpen, setIsDialogOpen] = React.useState(false)

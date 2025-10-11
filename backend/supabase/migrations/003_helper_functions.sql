@@ -165,3 +165,30 @@ CREATE TRIGGER check_leave_overlap
   BEFORE INSERT OR UPDATE ON leaves
   FOR EACH ROW
   EXECUTE FUNCTION prevent_leave_overlap();
+
+-- Function to get user profile with email
+CREATE OR REPLACE FUNCTION get_user_profile_with_email(
+  p_user_id UUID
+)
+RETURNS TABLE (
+  id UUID,
+  full_name TEXT,
+  email TEXT,
+  role user_role,
+  department TEXT,
+  photo_url TEXT
+) AS $$
+BEGIN
+  RETURN QUERY
+  SELECT
+    p.id,
+    p.full_name,
+    u.email,
+    p.role,
+    p.department,
+    p.photo_url
+  FROM profiles p
+  JOIN auth.users u ON p.id = u.id
+  WHERE p.id = p_user_id;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;

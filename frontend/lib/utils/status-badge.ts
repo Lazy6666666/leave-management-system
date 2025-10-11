@@ -31,6 +31,47 @@ export function getStatusLabel(status: LeaveStatus): string {
   return status.charAt(0).toUpperCase() + status.slice(1)
 }
 
+export function getRoleBadgeVariant(
+  role: 'employee' | 'manager' | 'admin' | 'hr'
+): 'default' | 'secondary' | 'destructive' | 'outline' {
+  switch (role) {
+    case 'admin':
+      return 'destructive'
+    case 'manager':
+      return 'secondary'
+    case 'hr':
+      return 'outline'
+    case 'employee':
+      return 'default'
+    default:
+      return 'default'
+  }
+}
+
+/**
+ * Normalizes a role string to ensure it matches the expected type
+ * @param role - The role string to normalize
+ * @returns A properly typed role
+ */
+export function normalizeRole(
+  role: string | undefined | null
+): 'employee' | 'manager' | 'admin' | 'hr' {
+  if (!role) {
+    return 'employee'
+  }
+
+  const normalized = role.toLowerCase() as 'employee' | 'manager' | 'admin' | 'hr'
+  const validRoles: readonly ('employee' | 'manager' | 'admin' | 'hr')[] = [
+    'employee',
+    'manager',
+    'admin',
+    'hr'
+  ]
+
+  return validRoles.includes(normalized) ? normalized : 'employee'
+}
+
+
 /**
  * Configuration object for status display
  */

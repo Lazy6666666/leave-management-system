@@ -2,7 +2,7 @@
 
 import { useQuery } from '@tanstack/react-query'
 import { getBrowserClient } from '@/lib/supabase-client'
-import type { Profile } from '@/types'
+import type { Employee } from '@/types'
 
 const supabase = getBrowserClient()
 
@@ -47,7 +47,7 @@ export function useTeamCalendar(options: UseTeamCalendarOptions) {
           start_date,
           end_date,
           status,
-          requester:profiles!requester_id(id, full_name),
+          requester:employees!leaves_requester_id_fkey(id, name),
           leave_type:leave_types(id, name)
         `)
         .or(`and(start_date.lte.${endDate},end_date.gte.${startDate})`)
@@ -61,10 +61,10 @@ export function useTeamCalendar(options: UseTeamCalendarOptions) {
       // Transform data into calendar format
       const calendarData: Map<string, CalendarLeave> = new Map()
 
-      data?.forEach((leave: { 
+      data?.forEach((leave: {
         start_date: string
         end_date: string
-        requester?: { full_name: string }
+        requester?: { id: string; name: string }
         leave_type?: { name: string }
         status: string
       }) => {
@@ -84,8 +84,8 @@ export function useTeamCalendar(options: UseTeamCalendarOptions) {
           }
 
           calendarData.get(dateKey)!.employees.push({
-            id: (leave.requester as Profile)?.id || '',
-            name: leave.requester?.full_name || 'Unknown',
+            id: leave.requester?.id || '',
+            name: leave.requester?.name || 'Unknown',
             leaveType: leave.leave_type?.name || 'Unknown',
             status: leave.status as 'pending' | 'approved',
           })

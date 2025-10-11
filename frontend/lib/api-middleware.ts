@@ -293,7 +293,7 @@ export async function validateOwnership(
   if (resourceType === 'leave') {
     const { data: leave } = await supabase
       .from('leaves')
-      .select('requester_id, requester:profiles!leaves_requester_id_fkey(department)')
+      .select('requester_id, requester:employees!leaves_requester_id_fkey(department)')
       .eq('id', resourceId)
       .single()
 

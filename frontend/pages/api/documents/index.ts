@@ -47,7 +47,7 @@ async function handleGet(req: NextApiRequest, res: NextApiResponse, supabase: Ty
     .from('company_documents')
     .select(`
       *,
-      uploader:profiles!company_documents_uploaded_by_fkey(id, full_name)
+      uploader:employees!company_documents_uploaded_by_fkey(id, name)
     `, { count: 'exact' })
     .order('created_at', { ascending: false })
     .range(offsetNum, offsetNum + limitNum - 1);
@@ -117,7 +117,7 @@ async function handlePost(req: NextApiRequest, res: NextApiResponse, supabase: T
     })
     .select(`
       *,
-      uploader:profiles!company_documents_uploaded_by_fkey(id, full_name)
+      uploader:employees!company_documents_uploaded_by_fkey(id, name)
     `)
     .single();
 

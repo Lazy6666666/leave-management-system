@@ -56,12 +56,11 @@ export default function DashboardPage() {
   }, [supabase]);
 
   useEffect(() => {
-    if (currentUserId) {
-      const channel = subscribeToLeaveRequests(currentUserId);
-      return () => {
-        unsubscribeFromChannel(channel);
-      };
-    }
+    if (!currentUserId) return;
+    const channel = subscribeToLeaveRequests(currentUserId);
+    return () => {
+      unsubscribeFromChannel(channel);
+    };
   }, [currentUserId]);
 
   const user = {
@@ -235,7 +234,7 @@ export default function DashboardPage() {
           <CardContent className="text-center">
             <Button
               size="lg"
-              className="w-full sm:w-auto px-8"
+              className="w-full sm:w-auto px-8 glass-blue"
               aria-label="Create new leave request"
               onClick={() => setShowLeaveRequestForm(true)}
             >
@@ -530,7 +529,7 @@ export default function DashboardPage() {
         </div>
       </div>
       <Dialog open={showLeaveRequestForm} onOpenChange={setShowLeaveRequestForm}>
-        <DialogContent className="sm:max-w-[625px]">
+        <DialogContent className="sm:max-w-[625px] glass-card">
           <DialogHeader>
             <DialogTitle>New Leave Request</DialogTitle>
             <DialogDescription>

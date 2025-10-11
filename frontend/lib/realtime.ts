@@ -35,7 +35,7 @@ export const subscribeToLeaveRequests = (userId?: string, department?: string) =
   // TODO: Implement more granular filtering based on userId and department
   // This would involve creating specific RLS policies for real-time or more complex channel logic
 
-  channel.subscribe((status) => {
+  channel.subscribe((status: 'SUBSCRIBED' | 'CHANNEL_ERROR' | 'TIMED_OUT' | 'CLOSED') => {
     if (status === 'SUBSCRIBED') {
       console.log('Subscribed to leave requests channel');
     } else if (status === 'CHANNEL_ERROR') {

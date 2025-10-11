@@ -85,7 +85,7 @@ export default function DocumentsPage() {
         .from('leaves')
         .select(`
           *,
-          requester:profiles!requester_id(id, full_name, role, department),
+          requester:employees!requester_id(id, name, role, department),
           leave_type:leave_types(id, name, description, default_allocation_days, is_active)
         `)
         .in('id', leaveRequestIds)
@@ -144,8 +144,8 @@ export default function DocumentsPage() {
     const searchLower = searchQuery.toLowerCase()
     const fileName = doc.file_name.toLowerCase()
     const leaveType = doc.leave?.leave_type?.name?.toLowerCase() || ''
-    const requesterName = doc.leave?.requester?.full_name?.toLowerCase() || ''
-    
+    const requesterName = doc.leave?.requester?.name?.toLowerCase() || ''
+
     return (
       fileName.includes(searchLower) ||
       leaveType.includes(searchLower) ||
