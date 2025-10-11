@@ -56,8 +56,8 @@ export async function middleware(request: NextRequest) {
         .eq('id', user.id)
         .single()
 
-      if (profileError) {
-        console.error('Error fetching user profile in middleware:', profileError);
+      if (error) {
+        console.error('Error fetching user profile in middleware:', error);
       } else if (profile) {
         userRole = profile.role;
       }
