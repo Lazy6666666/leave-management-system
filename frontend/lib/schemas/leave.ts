@@ -8,10 +8,6 @@ export const leaveRequestSchema = z.object({
     .string()
     .min(1, 'Start date is required')
     .refine((date) => {
-      // In test environment, be more lenient with date validation
-      if (process.env.NODE_ENV === 'test') {
-        return true;
-      }
       const selectedDate = new Date(date);
       const today = new Date();
       today.setHours(0, 0, 0, 0);
