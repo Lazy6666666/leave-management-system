@@ -44,6 +44,7 @@ async function updateProfileAvatarUrl(userId: string, newUrl: string): Promise<v
 
 export function AvatarUpload({ userId, avatarUrl, onUploadSuccess }: AvatarUploadProps) {
   const [file, setFile] = useState<File | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const queryClient = useQueryClient();
 
   const uploadMutation = useMutation({
@@ -59,18 +60,32 @@ export function AvatarUpload({ userId, avatarUrl, onUploadSuccess }: AvatarUploa
         onUploadSuccess(newUrl);
       }
       setFile(null);
+      setError(null);
     },
     onError: (error: Error) => {
       console.error('Avatar upload failed:', error.message);
-      alert(`Upload failed: ${error.message}`);
+      setError(`Upload failed: ${error.message}`);
     },
   });
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (event.target.files && event.target.files.length > 0) {
-      setFile(event.target.files[0] || null);
+    const selectedFile = event.target.files?.[0];
+    if (selectedFile) {
+      if (selectedFile.size > 2 * 1024 * 1024) {
+        setError('File is too large (max 2MB)');
+        setFile(null);
+        return;
+      }
+      if (!['image/jpeg', 'image/png'].includes(selectedFile.type)) {
+        setError('Invalid file type (JPEG or PNG only)');
+        setFile(null);
+        return;
+      }
+      setFile(selectedFile);
+      setError(null);
     } else {
       setFile(null);
+      setError(null);
     }
   };
 
@@ -89,7 +104,7 @@ export function AvatarUpload({ userId, avatarUrl, onUploadSuccess }: AvatarUploa
           <Input
             id="avatar-upload"
             type="file"
-            accept="image/*"
+            accept="image/png, image/jpeg"
             onChange={handleFileChange}
             className="hidden"
             disabled={uploadMutation.isPending}
@@ -108,6 +123,7 @@ export function AvatarUpload({ userId, avatarUrl, onUploadSuccess }: AvatarUploa
           Upload
         </Button>
       </div>
+      {error && <p className="text-sm text-red-500">{error}</p>}
     </div>
   );
 }
