@@ -5,7 +5,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import AvatarUpload from '@/components/features/AvatarUpload'
+import { AvatarUpload } from '@/components/features/AvatarUpload'
+import React from 'react'
 
 const mockUpload = vi.fn()
 const mockRemove = vi.fn()
@@ -40,12 +41,12 @@ describe('AvatarUpload', () => {
   )
 
   it('should render upload button', () => {
-    render(<AvatarUpload userId="1" currentAvatarUrl={null} />, { wrapper })
-    expect(screen.getByRole('button')).toBeInTheDocument()
+    render(<AvatarUpload userId="1" avatarUrl={null} />, { wrapper })
+    expect(screen.getByText('Choose File')).toBeInTheDocument()
   })
 
   it('should display current avatar if provided', () => {
-    render(<AvatarUpload userId="1" currentAvatarUrl="http://example.com/current.jpg" />, {
+    render(<AvatarUpload userId="1" avatarUrl="http://example.com/current.jpg" />, {
       wrapper,
     })
     const img = screen.getByRole('img')
@@ -53,9 +54,8 @@ describe('AvatarUpload', () => {
   })
 
   it('should accept file input', async () => {
-    render(<AvatarUpload userId="1" currentAvatarUrl={null} />, { wrapper })
-
-    const input = screen.getByLabelText(/upload avatar/i) as HTMLInputElement
+    const { container } = render(<AvatarUpload userId="1" avatarUrl={null} />, { wrapper })
+    const input = container.querySelector('#avatar-upload') as HTMLInputElement
     const file = new File(['avatar'], 'avatar.png', { type: 'image/png' })
 
     fireEvent.change(input, { target: { files: [file] } })
@@ -63,8 +63,17 @@ describe('AvatarUpload', () => {
     expect(input.files?.[0]).toBe(file)
   })
 
-  it('should show file size limit', () => {
-    render(<AvatarUpload userId="1" currentAvatarUrl={null} />, { wrapper })
-    expect(screen.getByText(/max.*mb/i)).toBeInTheDocument()
-  })
+  it('should show an error message when the file is too large', async () => {
+    const { container } = render(<AvatarUpload userId="1" avatarUrl={null} />, { wrapper });
+    const input = container.querySelector('#avatar-upload') as HTMLInputElement;
+
+    // Create a file larger than 2MB
+    const largeFile = new File(['a'.repeat(2 * 1024 * 1024 + 1)], 'large.png', { type: 'image/png' });
+
+    fireEvent.change(input, { target: { files: [largeFile] } });
+
+    await waitFor(() => {
+      expect(screen.getByText(/file is too large/i)).toBeInTheDocument();
+    });
+  });
 })
